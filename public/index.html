@@ -1,0 +1,2179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACCESS API Explorer</title>
+<style>
+/* ========================================================================
+   CSS Theme — GitHub-dark inspired
+   ======================================================================== */
+:root {
+  --bg-0: #0d1117;
+  --bg-1: #161b22;
+  --bg-2: #1c2128;
+  --bg-3: #2d333b;
+  --border: #373e47;
+  --text: #e6edf3;
+  --text-dim: #8b949e;
+  --text-bright: #ffffff;
+  --blue: #58a6ff;
+  --green: #3fb950;
+  --red: #f85149;
+  --yellow: #d29922;
+  --orange: #db6d28;
+  --cyan: #79c0ff;
+  --purple: #bc8cff;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: var(--bg-0);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+/* Header */
+.header {
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.header h1 span { color: var(--blue); }
+.badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.badge-simulated { background: rgba(210,153,34,0.2); color: var(--yellow); border: 1px solid var(--yellow); }
+.badge-live { background: rgba(63,185,80,0.2); color: var(--green); border: 1px solid var(--green); }
+.header-right { display: flex; gap: 8px; align-items: center; }
+/* Buttons */
+.btn {
+  background: var(--bg-3);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btn:hover { background: #3d444d; }
+.btn-primary {
+  background: rgba(88,166,255,0.15);
+  color: var(--blue);
+  border-color: rgba(88,166,255,0.3);
+}
+.btn-primary:hover { background: rgba(88,166,255,0.25); }
+.btn-danger {
+  background: rgba(248,81,73,0.1);
+  color: var(--red);
+  border-color: rgba(248,81,73,0.3);
+}
+.btn-danger:hover { background: rgba(248,81,73,0.2); }
+.btn-send {
+  background: rgba(63,185,80,0.15);
+  color: var(--green);
+  border-color: rgba(63,185,80,0.3);
+  padding: 8px 24px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.btn-send:hover { background: rgba(63,185,80,0.25); }
+.btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-small { padding: 3px 8px; font-size: 11px; }
+/* Layout */
+.app-layout {
+  display: flex;
+  min-height: calc(100vh - 53px);
+}
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background: var(--bg-1);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+.sidebar-section h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.step-list { list-style: none; }
+.step-list li {
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s;
+}
+.step-list li:hover { background: var(--bg-3); }
+.step-list li.active { background: rgba(88,166,255,0.15); color: var(--blue); }
+.step-list li.completed { color: var(--green); }
+.step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.step-list li.active .step-num { background: var(--blue); color: var(--bg-0); }
+.step-list li.completed .step-num { background: var(--green); color: var(--bg-0); }
+/* Track selector */
+select {
+  width: 100%;
+  background: var(--bg-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+}
+select:focus { outline: none; border-color: var(--blue); }
+/* State summary */
+.state-summary { font-size: 12px; color: var(--text-dim); }
+.state-summary .count {
+  display: inline-block;
+  min-width: 18px;
+  text-align: center;
+  background: var(--bg-3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--text);
+  font-weight: 600;
+  margin-left: 4px;
+}
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  max-width: 900px;
+}
+/* Panel header */
+.panel-header {
+  margin-bottom: 20px;
+}
+.panel-header h2 {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+.panel-header h2 .op-name { color: var(--blue); }
+.endpoint-line {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.method-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.method-post { background: rgba(63,185,80,0.2); color: var(--green); }
+.method-get { background: rgba(88,166,255,0.2); color: var(--blue); }
+/* Cards */
+.card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.card-header {
+  padding: 10px 16px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+.card-header:hover { background: var(--bg-3); }
+.card-header .toggle { font-size: 10px; color: var(--text-dim); }
+.card-body { padding: 16px; }
+.card-body p { font-size: 14px; margin-bottom: 8px; }
+.card-body p:last-child { margin-bottom: 0; }
+/* Result codes table */
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.result-table th {
+  text-align: left;
+  padding: 6px 8px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.result-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(55,62,71,0.5);
+}
+.result-table code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--bg-3);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--cyan);
+}
+/* Scenario selector */
+.scenario-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+.scenario-row select { flex: 1; }
+.scenario-hint {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: italic;
+  padding: 0 0 8px 0;
+}
+/* Editor */
+.editor-wrap { position: relative; }
+.editor-wrap textarea {
+  width: 100%;
+  min-height: 260px;
+  background: var(--bg-0);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  tab-size: 2;
+}
+.editor-wrap textarea:focus { outline: none; border-color: var(--blue); }
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+/* Response */
+.response-section { display: none; }
+.response-section.visible { display: block; }
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  font-size: 13px;
+}
+.pipeline-step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--bg-3);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.pipeline-step.active {
+  background: rgba(88,166,255,0.2);
+  color: var(--blue);
+}
+.pipeline-step.done {
+  background: rgba(63,185,80,0.15);
+  color: var(--green);
+}
+.pipeline-step.error {
+  background: rgba(248,81,73,0.15);
+  color: var(--red);
+}
+.pipeline-arrow { color: var(--text-dim); font-size: 16px; }
+.dots::after {
+  content: '';
+  animation: dots 1.5s steps(4) infinite;
+}
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+/* Result explanation */
+.result-box {
+  padding: 14px 16px;
+  border-radius: 6px;
+  margin-top: 12px;
+  border-left: 3px solid;
+}
+.result-box.result-green { background: rgba(63,185,80,0.08); border-color: var(--green); }
+.result-box.result-red { background: rgba(248,81,73,0.08); border-color: var(--red); }
+.result-box.result-yellow { background: rgba(210,153,34,0.08); border-color: var(--yellow); }
+.result-box h4 {
+  font-size: 14px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.result-box .body { font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+.result-box .next-step { font-size: 12px; color: var(--blue); font-weight: 600; }
+/* JSON syntax highlighting */
+.json-output {
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  position: relative;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.json-key { color: var(--blue); }
+.json-string { color: var(--cyan); }
+.json-number { color: var(--orange); }
+.json-boolean { color: var(--red); }
+.json-null { color: var(--text-dim); }
+/* Status badges */
+.http-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+.http-2xx { background: rgba(63,185,80,0.2); color: var(--green); }
+.http-4xx { background: rgba(248,81,73,0.2); color: var(--red); }
+.http-202 { background: rgba(210,153,34,0.2); color: var(--yellow); }
+/* State inspector */
+.state-inspector {
+  background: var(--bg-1);
+  border-top: 1px solid var(--border);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  transition: max-height 0.3s;
+  max-height: 40px;
+  overflow: hidden;
+}
+.state-inspector.open { max-height: 50vh; overflow-y: auto; }
+.state-inspector-header {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+}
+.state-inspector-header:hover { background: var(--bg-3); }
+.state-inspector-body { padding: 16px 20px; }
+/* Track reference modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: none;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 60px;
+}
+.modal-overlay.visible { display: flex; }
+.modal {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 700px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+.modal h2 { font-size: 18px; margin-bottom: 16px; }
+.modal h3 { font-size: 14px; color: var(--blue); margin: 16px 0 8px; }
+.modal table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px; }
+.modal th { text-align: left; padding: 6px 8px; background: var(--bg-2); color: var(--text-dim); }
+.modal td { padding: 5px 8px; border-bottom: 1px solid rgba(55,62,71,0.5); }
+.modal code { font-family: var(--font-mono); font-size: 11px; background: var(--bg-3); padding: 1px 5px; border-radius: 3px; }
+.close-modal {
+  float: right;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 20px;
+}
+.close-modal:hover { color: var(--text); }
+/* Field guide */
+.field-guide { font-size: 12px; color: var(--text-dim); }
+.field-guide dt { color: var(--cyan); font-family: var(--font-mono); margin-top: 6px; }
+.field-guide dd { margin-left: 16px; margin-bottom: 4px; }
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main-content { padding: 16px; }
+  .header h1 { font-size: 15px; }
+}
+/* Collapsible hidden */
+.collapsed { display: none; }
+</style>
+</head>
+<body>
+<!-- ====================================================================
+     HEADER
+     ==================================================================== -->
+<div class="header">
+  <div class="header-left">
+    <h1><span>ACCESS</span> API Explorer</h1>
+    <span id="modeBadge" class="badge badge-simulated">Simulated</span>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-danger" onclick="resetState()">Reset State</button>
+    <button class="btn" onclick="toggleStateInspector()">State Inspector</button>
+    <button class="btn" onclick="openTrackRef()">Track Reference</button>
+  </div>
+</div>
+
+<!-- ====================================================================
+     APP LAYOUT
+     ==================================================================== -->
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <h3>Patient Lifecycle</h3>
+      <ul class="step-list" id="stepList">
+        <li class="active" data-step="0" onclick="switchStep(0)">
+          <span class="step-num">1</span> Screen
+        </li>
+        <li data-step="1" onclick="switchStep(1)">
+          <span class="step-num">2</span> Enroll
+        </li>
+        <li data-step="2" onclick="switchStep(2)">
+          <span class="step-num">3</span> Report Data
+        </li>
+        <li data-step="3" onclick="switchStep(3)">
+          <span class="step-num">4</span> Poll Status
+        </li>
+        <li data-step="4" onclick="switchStep(4)">
+          <span class="step-num">5</span> Exit / Unalign
+        </li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <h3>Track</h3>
+      <select id="trackSelect" onchange="onTrackChange()">
+        <option value="eCKM">eCKM - Early Cardio-Kidney-Metabolic</option>
+        <option value="CKM">CKM - Cardio-Kidney-Metabolic</option>
+        <option value="MSK">MSK - Musculoskeletal</option>
+        <option value="BH">BH - Behavioral Health</option>
+      </select>
+    </div>
+    <div class="sidebar-section">
+      <h3>Mock State</h3>
+      <div class="state-summary">
+        Alignments: <span class="count" id="alignCount">0</span><br>
+        Submissions: <span class="count" id="subCount">0</span><br>
+        Data Reports: <span class="count" id="reportCount">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content" id="mainContent">
+    <!-- Panels injected by JS -->
+  </div>
+</div>
+
+<!-- ====================================================================
+     STATE INSPECTOR
+     ==================================================================== -->
+<div class="state-inspector" id="stateInspector">
+  <div class="state-inspector-header" onclick="toggleStateInspector()">
+    <span>State Inspector</span>
+    <span class="toggle" id="stateToggle">&#9650;</span>
+  </div>
+  <div class="state-inspector-body">
+    <div class="json-output" id="stateJson" style="max-height: 40vh; overflow-y: auto;">
+      { "alignments": {}, "submissions": {}, "dataReports": {} }
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================================
+     TRACK REFERENCE MODAL
+     ==================================================================== -->
+<div class="modal-overlay" id="trackRefModal">
+  <div class="modal">
+    <button class="close-modal" onclick="closeTrackRef()">&times;</button>
+    <h2>Track Reference: <span id="trackRefTitle">eCKM</span></h2>
+    <div id="trackRefBody"></div>
+  </div>
+</div>
+
+<!-- ====================================================================
+     JAVASCRIPT
+     ==================================================================== -->
+<script>
+// =========================================================================
+// Constants
+// =========================================================================
+
+const ACCESS_CS_BASE = "https://dsacms.github.io/cmmi-access-model/CodeSystem";
+const MBI_SYSTEM = "http://terminology.hl7.org/NamingSystem/cmsMBI";
+const TRACK_CS = `${ACCESS_CS_BASE}/ACCESSTrackCS`;
+const PARTICIPANT_SYSTEM = "https://dsacms.github.io/cmmi-access-model/participant-id";
+const PAYER_SYSTEM = "urn:oid:2.16.840.1.113883.3.221.5";
+const UNALIGN_REASON_CS = `${ACCESS_CS_BASE}/ACCESSUnalignmentReasonCS`;
+
+const RESULT_SYSTEMS = {
+  eligibility: `${ACCESS_CS_BASE}/ACCESSEligibilityResultCS`,
+  alignment: `${ACCESS_CS_BASE}/ACCESSAlignmentResultCS`,
+  unalignment: `${ACCESS_CS_BASE}/ACCESSUnalignmentResultCS`,
+  "report-data": `${ACCESS_CS_BASE}/ACCESSReportDataResultCS`,
+};
+
+const TRACK_NORMALIZE = { ECKM: "eCKM", CKM: "CKM", MSK: "MSK", BH: "BH" };
+
+const TRACK_ICD10_PREFIXES = {
+  eCKM: ["I10","I11","I12","I13","I15","I25","I50","E08","E09","E10","E11","E13","E66","E78","N18"],
+  CKM: ["N18","E08","E09","E10","E11","E13","I10","I12","I13","I15"],
+  MSK: ["M15","M16","M17","M47","M50","M51","M54","M75","M79","G89"],
+  BH: ["F20","F25","F31","F32","F33","F34","F40","F41","F42","F43","F90"],
+};
+
+const EXCLUSION_CODES = ["N18.6", "Z99.2", "Z94.0"];
+
+const TRACK_REQUIRED_LOINCS = {
+  eCKM: {
+    baseline: ["85354-9","13457-7","2093-3","2571-8","39156-5","56086-2","1558-6","4548-4"],
+    quarterly: ["85354-9"],
+    "end-of-period": ["85354-9","13457-7","2093-3","2571-8","39156-5","56086-2","1558-6","4548-4"],
+  },
+  CKM: {
+    baseline: ["4548-4","48642-3","85354-9","9318-7"],
+    quarterly: ["85354-9","48642-3"],
+    "end-of-period": ["4548-4","48642-3","85354-9","9318-7"],
+  },
+  MSK: {
+    baseline: ["72514-3","77849-8","62193-8"],
+    quarterly: ["72514-3","77849-8","62193-8"],
+    "end-of-period": ["72514-3","77849-8","62193-8","77865-4"],
+  },
+  BH: {
+    baseline: ["44261-6","70274-6"],
+    quarterly: ["44261-6","70274-6"],
+    "end-of-period": ["44261-6","70274-6","77865-4"],
+  },
+};
+
+const MSK_ALTERNATIVE_LOINCS = {
+  "77849-8": ["71934-4","72100-1","71933-6","82324-5","82323-7"],
+  "62193-8": ["71934-4","72100-1","71933-6","82324-5","82323-7"],
+};
+
+const LOCK_IN_DAYS = 90;
+const BASELINE_WINDOW_DAYS = 60;
+
+// =========================================================================
+// LOINC display names
+// =========================================================================
+const LOINC_NAMES = {
+  "85354-9": "Blood Pressure Panel",
+  "13457-7": "LDL Cholesterol",
+  "2093-3": "Total Cholesterol",
+  "2571-8": "Triglycerides",
+  "39156-5": "BMI",
+  "56086-2": "Waist Circumference",
+  "1558-6": "Fasting Glucose",
+  "4548-4": "HbA1c",
+  "48642-3": "eGFR",
+  "9318-7": "UACR (Albumin/Creatinine)",
+  "72514-3": "Pain NRS (0-10)",
+  "77849-8": "PROMIS Physical Function",
+  "62193-8": "PROMIS Pain Interference",
+  "77865-4": "PGIC (Patient Global Impression of Change)",
+  "44261-6": "PHQ-9 (Depression)",
+  "70274-6": "GAD-7 (Anxiety)",
+  "71934-4": "ODI (Oswestry Disability Index)",
+  "72100-1": "NDI (Neck Disability Index)",
+  "71933-6": "QuickDASH",
+  "82324-5": "KOOS JR (Knee)",
+  "82323-7": "HOOS JR (Hip)",
+  "8480-6": "Systolic BP",
+};
+
+// =========================================================================
+// Track Reference Data
+// =========================================================================
+const TRACK_INFO = {
+  eCKM: {
+    name: "Early Cardio-Kidney-Metabolic",
+    description: "Targets early-stage cardiovascular, kidney, and metabolic conditions before they progress. Focus on hypertension, early diabetes, and lipid disorders.",
+    icd10: [
+      {prefix: "I10-I13", desc: "Hypertensive diseases"},
+      {prefix: "I15", desc: "Secondary hypertension"},
+      {prefix: "I25", desc: "Chronic ischemic heart disease"},
+      {prefix: "I50", desc: "Heart failure"},
+      {prefix: "E08-E13", desc: "Diabetes mellitus"},
+      {prefix: "E66", desc: "Overweight and obesity"},
+      {prefix: "E78", desc: "Disorders of lipoprotein metabolism"},
+      {prefix: "N18", desc: "Chronic kidney disease"},
+    ],
+    oap: [{loinc: "85354-9", target: "Systolic BP reduction >= 10 mmHg OR < 130 mmHg"}],
+    exclusions: "N18.6 (ESRD), Z99.2 (Dialysis), Z94.0 (Kidney transplant)",
+  },
+  CKM: {
+    name: "Cardio-Kidney-Metabolic",
+    description: "Manages established CKD with comorbid diabetes and hypertension. Targets kidney function preservation and glycemic/BP control.",
+    icd10: [
+      {prefix: "N18", desc: "Chronic kidney disease (stages 1-5, excl. ESRD)"},
+      {prefix: "E08-E13", desc: "Diabetes mellitus"},
+      {prefix: "I10, I12-I15", desc: "Hypertensive diseases"},
+    ],
+    oap: [{loinc: "4548-4", target: "HbA1c stable or improved (< baseline) OR < 7.0%"}],
+    exclusions: "N18.6 (ESRD), Z99.2 (Dialysis), Z94.0 (Kidney transplant)",
+  },
+  MSK: {
+    name: "Musculoskeletal",
+    description: "Conservative management of osteoarthritis and musculoskeletal pain. Uses PROMs (patient-reported outcomes) to track function and pain.",
+    icd10: [
+      {prefix: "M15-M17", desc: "Osteoarthritis (polyarticular, hip, knee)"},
+      {prefix: "M47", desc: "Spondylosis"},
+      {prefix: "M50-M51", desc: "Cervical/lumbar disc disorders"},
+      {prefix: "M54", desc: "Dorsalgia (back pain)"},
+      {prefix: "M75", desc: "Shoulder lesions"},
+      {prefix: "M79", desc: "Other soft tissue disorders"},
+      {prefix: "G89", desc: "Pain, not elsewhere classified"},
+    ],
+    oap: [
+      {loinc: "72514-3", target: "Pain NRS: no more than 2-point increase"},
+      {loinc: "77849-8", target: "PROMIS PF: >= 2 T-score improvement"},
+      {loinc: "82324-5", target: "KOOS JR: >= 10 point improvement"},
+      {loinc: "82323-7", target: "HOOS JR: >= 10 point improvement"},
+      {loinc: "71934-4", target: "ODI: >= 8 point reduction (lower=better)"},
+      {loinc: "72100-1", target: "NDI: >= 8 point reduction"},
+      {loinc: "71933-6", target: "QuickDASH: >= 10 point reduction"},
+    ],
+    exclusions: "N18.6 (ESRD), Z99.2 (Dialysis), Z94.0 (Kidney transplant)",
+  },
+  BH: {
+    name: "Behavioral Health",
+    description: "Integrated care for serious mental illness and common mental health conditions. Uses PHQ-9 and GAD-7 PROMs to track depression and anxiety severity.",
+    icd10: [
+      {prefix: "F20", desc: "Schizophrenia"},
+      {prefix: "F25", desc: "Schizoaffective disorders"},
+      {prefix: "F31-F34", desc: "Mood disorders (bipolar, depression, cyclothymia)"},
+      {prefix: "F40-F43", desc: "Anxiety, stress-related, OCD"},
+      {prefix: "F90", desc: "ADHD"},
+    ],
+    oap: [
+      {loinc: "44261-6", target: "PHQ-9: reduction >= 5 OR score < 5 (remission)"},
+      {loinc: "70274-6", target: "GAD-7: reduction >= 4 OR score < 5"},
+    ],
+    exclusions: "N18.6 (ESRD), Z99.2 (Dialysis), Z94.0 (Kidney transplant)",
+  },
+};
+
+// =========================================================================
+// In-Browser MockEngine
+// =========================================================================
+class MockEngine {
+  constructor() {
+    this.alignments = new Map();
+    this.submissions = new Map();
+    this.dataReports = new Map();
+    this.patientIdToMbi = new Map();
+    this.submissionCounter = 0;
+  }
+
+  // --- Helpers ---
+  extractMBI(patient) {
+    if (!patient?.identifier) return null;
+    const mbiIdent = patient.identifier.find(id => id.system === MBI_SYSTEM);
+    return mbiIdent ? mbiIdent.value : null;
+  }
+
+  extractParamValue(parameters, name) {
+    const p = parameters?.parameter?.find(x => x.name === name);
+    if (!p) return undefined;
+    if (p.resource) return p.resource;
+    if (p.valueBoolean !== undefined) return p.valueBoolean;
+    if (p.valueString !== undefined) return p.valueString;
+    if (p.valueIdentifier) return p.valueIdentifier.value;
+    if (p.valueCodeableConcept) return p.valueCodeableConcept.coding?.[0]?.code;
+    return undefined;
+  }
+
+  extractResource(parameters, name) {
+    return parameters?.parameter?.find(x => x.name === name)?.resource ?? null;
+  }
+
+  extractAllResources(parameters, name) {
+    if (!parameters?.parameter) return [];
+    return parameters.parameter.filter(x => x.name === name).map(p => p.resource).filter(Boolean);
+  }
+
+  getTrackCode(params) {
+    const trackParam = params?.parameter?.find(x => x.name === "track");
+    return trackParam?.valueCodeableConcept?.coding?.[0]?.code ?? null;
+  }
+
+  newSubmissionID() {
+    return `sub-${++this.submissionCounter}-${Date.now()}`;
+  }
+
+  daysBetween(d1, d2) {
+    return Math.floor((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  icd10MatchesTrack(icd10, track) {
+    const prefixes = TRACK_ICD10_PREFIXES[track];
+    if (!prefixes) return false;
+    return prefixes.some(prefix => icd10.startsWith(prefix));
+  }
+
+  hasExclusion(conditions) {
+    return conditions.some(cond => {
+      const code = cond?.code?.coding?.[0]?.code;
+      return code && EXCLUSION_CODES.some(ex => code.startsWith(ex));
+    });
+  }
+
+  checkIcd10Match(conditions, track) {
+    return conditions.every(cond => {
+      const code = cond?.code?.coding?.[0]?.code;
+      return code && this.icd10MatchesTrack(code, track);
+    });
+  }
+
+  async isControlGroup(mbi, track) {
+    const data = new TextEncoder().encode(`${mbi}:${track}`);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = new Uint8Array(hashBuffer);
+    return hashArray[0] % 5 === 0;
+  }
+
+  // --- FHIR Response Builders ---
+  operationOutcome(severity, code, diagnostics) {
+    return { resourceType: "OperationOutcome", issue: [{ severity, code, diagnostics }] };
+  }
+
+  makeResultParams(systemKey, resultCode, diagnosticsMsg) {
+    const params = [{
+      name: "result",
+      valueCodeableConcept: { coding: [{ system: RESULT_SYSTEMS[systemKey], code: resultCode }] },
+    }];
+    if (diagnosticsMsg) {
+      params.push({
+        name: "operationOutcome",
+        resource: this.operationOutcome("information", "informational", diagnosticsMsg),
+      });
+    }
+    return { resourceType: "Parameters", parameter: params };
+  }
+
+  submissionStatusResult(type, result) {
+    return {
+      resourceType: "Parameters",
+      parameter: [
+        { name: "submissionType", valueString: type },
+        { name: "result", resource: result },
+      ],
+    };
+  }
+
+  // --- Operation 1: $check-eligibility ---
+  async processCheckEligibility(params) {
+    const patient = this.extractResource(params, "patient");
+    const track = this.getTrackCode(params);
+    const conditions = this.extractAllResources(params, "condition");
+    const mbi = this.extractMBI(patient);
+
+    if (!mbi) return this.makeResultParams("eligibility", "not-eligible-not-medicare");
+    if (conditions.length > 0 && this.hasExclusion(conditions))
+      return this.makeResultParams("eligibility", "not-eligible-services");
+
+    const key = `${mbi}:${track}`;
+    if (await this.isControlGroup(mbi, track))
+      return this.makeResultParams("eligibility", "not-eligible-control-group");
+
+    if (this.alignments.has(key)) {
+      const existing = this.alignments.get(key);
+      const participantID = this.extractParamValue(params, "participantID");
+      if (existing.participantID !== participantID && existing.status === "aligned")
+        return this.makeResultParams("eligibility", "not-eligible-already-aligned");
+    }
+
+    if (conditions.length > 0 && !this.checkIcd10Match(conditions, track))
+      return this.makeResultParams("eligibility", "not-eligible-diagnoses");
+
+    if (conditions.length === 0)
+      return this.makeResultParams("eligibility", "eligible-pending-diagnosis");
+
+    if (this.alignments.has(key) && this.alignments.get(key).status === "aligned")
+      return this.makeResultParams("eligibility", "eligible-switch-participants");
+
+    return this.makeResultParams("eligibility", "eligible");
+  }
+
+  // --- Operation 2: $align ---
+  storeAlignment(key, participantID, patient, mbi) {
+    this.alignments.set(key, { participantID, alignedAt: new Date().toISOString(), status: "aligned" });
+    if (patient?.id) this.patientIdToMbi.set(patient.id, mbi);
+  }
+
+  async processAlign(params) {
+    const patient = this.extractResource(params, "patient");
+    const track = this.getTrackCode(params);
+    const conditions = this.extractAllResources(params, "condition");
+    const mbi = this.extractMBI(patient);
+    const participantID = this.extractParamValue(params, "participantID");
+    const switchConsent = this.extractParamValue(params, "switchConsentAttestation");
+
+    if (!mbi) return this.makeResultParams("alignment", "not-aligned-not-medicare");
+    const key = `${mbi}:${track}`;
+
+    if (await this.isControlGroup(mbi, track))
+      return this.makeResultParams("alignment", "not-aligned-control-group");
+    if (conditions.length > 0 && this.hasExclusion(conditions))
+      return this.makeResultParams("alignment", "not-aligned-services");
+    if (conditions.length > 0 && !this.checkIcd10Match(conditions, track))
+      return this.makeResultParams("alignment", "not-aligned-diagnoses");
+
+    if (this.alignments.has(key)) {
+      const existing = this.alignments.get(key);
+      if (existing.status === "aligned") {
+        if (existing.participantID === participantID)
+          return this.makeResultParams("alignment", "not-aligned-already-aligned");
+        const daysSinceAlign = this.daysBetween(new Date(existing.alignedAt), new Date());
+        if (daysSinceAlign <= LOCK_IN_DAYS)
+          return this.makeResultParams("alignment", "not-aligned-already-aligned");
+        if (switchConsent === true) {
+          this.storeAlignment(key, participantID, patient, mbi);
+          return this.makeResultParams("alignment", "aligned-switch-approved");
+        }
+      }
+    }
+
+    this.storeAlignment(key, participantID, patient, mbi);
+    return this.makeResultParams("alignment", "aligned");
+  }
+
+  // --- Operation 3: $report-data ---
+  processReportData(params) {
+    const measureReport = this.extractResource(params, "measureReport");
+    const resources = this.extractAllResources(params, "resource");
+
+    if (!measureReport || measureReport.resourceType !== "MeasureReport") {
+      return { error: this.operationOutcome("error", "required", "Missing required MeasureReport parameter") };
+    }
+
+    const subjectRef = measureReport.subject?.reference;
+    const patientId = subjectRef?.replace("Patient/", "");
+
+    const trackMatch = (measureReport.measure || "").match(/access-(\w+)-/);
+    const normalizedTrack = trackMatch ? (TRACK_NORMALIZE[trackMatch[1].toUpperCase()] ?? null) : null;
+
+    if (!normalizedTrack) {
+      return { error: this.operationOutcome("error", "value", "Cannot determine track from MeasureReport.measure URL") };
+    }
+
+    const mbi = this.patientIdToMbi.get(patientId) || patientId;
+    let alignmentKey = `${mbi}:${normalizedTrack}`;
+
+    if (!this.alignments.has(alignmentKey)) {
+      alignmentKey = null;
+      for (const [key] of this.alignments.entries()) {
+        const [keyMbi, keyTrack] = key.split(":");
+        if (keyTrack === normalizedTrack && (patientId === keyMbi || mbi === keyMbi)) {
+          alignmentKey = key;
+          break;
+        }
+      }
+    }
+
+    if (!alignmentKey || !this.alignments.has(alignmentKey)) {
+      return { result: this.makeResultParams("report-data", "rejected-not-aligned") };
+    }
+
+    const alignment = this.alignments.get(alignmentKey);
+    if (alignment.status !== "aligned") {
+      return { result: this.makeResultParams("report-data", "rejected-not-aligned") };
+    }
+
+    const alignedAt = new Date(alignment.alignedAt);
+    const reportDate = measureReport.date ? new Date(measureReport.date) : new Date();
+    const daysSinceAlignment = this.daysBetween(alignedAt, reportDate);
+    const existingReports = this.dataReports.get(alignmentKey) || [];
+
+    let reportType;
+    if (existingReports.length === 0) {
+      if (daysSinceAlignment > BASELINE_WINDOW_DAYS) {
+        alignment.status = "auto-unaligned-baseline-overdue";
+        return {
+          result: this.makeResultParams("report-data", "rejected-outside-window",
+            `Baseline overdue: ${daysSinceAlignment} days since alignment exceeds ${BASELINE_WINDOW_DAYS}-day window. Patient auto-unaligned.`),
+        };
+      }
+      reportType = "baseline";
+    } else {
+      const lastReport = existingReports[existingReports.length - 1];
+      const daysSinceLast = this.daysBetween(new Date(lastReport.submittedAt), reportDate);
+      if (daysSinceAlignment >= 365) {
+        reportType = "end-of-period";
+      } else if (daysSinceLast >= 70 && daysSinceLast <= 110) {
+        reportType = "quarterly";
+      } else if (daysSinceAlignment >= 185 && (normalizedTrack === "BH" || normalizedTrack === "MSK")) {
+        reportType = "end-of-period";
+      } else if (daysSinceLast < 70) {
+        return {
+          result: this.makeResultParams("report-data", "rejected-outside-window",
+            `Report submitted ${daysSinceLast} days since last report. Quarterly window is 70-110 days.`),
+        };
+      } else {
+        reportType = "quarterly";
+      }
+    }
+
+    const requiredLoincs = TRACK_REQUIRED_LOINCS[normalizedTrack]?.[reportType];
+    if (requiredLoincs) {
+      const submittedLoincs = new Set();
+      for (const res of resources) {
+        if (res.resourceType === "Observation") {
+          for (const coding of (res.code?.coding || [])) {
+            submittedLoincs.add(coding.code);
+          }
+        }
+      }
+      const missing = [];
+      for (const req of requiredLoincs) {
+        if (submittedLoincs.has(req)) continue;
+        if (normalizedTrack === "MSK" && MSK_ALTERNATIVE_LOINCS[req]?.some(alt => submittedLoincs.has(alt))) continue;
+        missing.push(req);
+      }
+      if (missing.length > 0) {
+        return {
+          result: this.makeResultParams("report-data", "rejected-missing-measures",
+            `Missing required measures for ${normalizedTrack} ${reportType}: ${missing.join(", ")}`),
+        };
+      }
+    }
+
+    if (!this.dataReports.has(alignmentKey)) this.dataReports.set(alignmentKey, []);
+    this.dataReports.get(alignmentKey).push({ reportType, submittedAt: reportDate.toISOString(), measureReport, resources });
+
+    return { result: this.makeResultParams("report-data", "accepted", `${reportType} report stored with ${resources.length} resources.`) };
+  }
+
+  // --- Operation 4: $unalign ---
+  processUnalign(params) {
+    const patient = this.extractResource(params, "patient");
+    const track = this.getTrackCode(params);
+    const mbi = this.extractMBI(patient);
+    const reasonCode = this.extractParamValue(params, "reason");
+
+    if (!mbi) return this.makeResultParams("unalignment", "patient-not-aligned");
+    const key = `${mbi}:${track}`;
+    if (!this.alignments.has(key) || this.alignments.get(key).status !== "aligned")
+      return this.makeResultParams("unalignment", "patient-not-aligned");
+
+    const conditionResources = this.extractAllResources(params, "condition");
+    if (reasonCode === "no-longer-clinically-eligible" && conditionResources.length > 0 && this.hasExclusion(conditionResources)) {
+      this.alignments.get(key).status = "unaligned";
+      return this.makeResultParams("unalignment", "unaligned-clinical-exclusion");
+    }
+
+    this.alignments.get(key).status = "unaligned";
+    return this.makeResultParams("unalignment", "unaligned");
+  }
+
+  // --- Operation 5: $submission-status ---
+  processSubmissionStatus(subId) {
+    if (!subId || !this.submissions.has(subId)) {
+      return { status: 404, body: this.operationOutcome("error", "not-found", `Submission ${subId} not found`) };
+    }
+    const sub = this.submissions.get(subId);
+    if (sub.status === "pending") {
+      return { status: 202, body: this.operationOutcome("information", "informational", "Processing in progress. Please retry.") };
+    }
+    return { status: 200, body: this.submissionStatusResult(sub.type, sub.result) };
+  }
+
+  // --- State ---
+  getState() {
+    return {
+      alignments: Object.fromEntries(this.alignments),
+      submissions: Object.fromEntries(
+        [...this.submissions.entries()].map(([k, v]) => [k, { type: v.type, status: v.status, createdAt: v.createdAt }])
+      ),
+      dataReports: Object.fromEntries(
+        [...this.dataReports.entries()].map(([k, v]) => [k, v.map(r => ({ reportType: r.reportType, submittedAt: r.submittedAt }))])
+      ),
+    };
+  }
+
+  reset() {
+    this.alignments.clear();
+    this.submissions.clear();
+    this.dataReports.clear();
+    this.patientIdToMbi.clear();
+    this.submissionCounter = 0;
+  }
+}
+
+// =========================================================================
+// Mode Detection & Global State
+// =========================================================================
+const mockEngine = new MockEngine();
+let isLiveMode = false;
+let liveBase = "http://localhost:3001";
+let currentStep = 0;
+let lastSubmissionId = null;
+
+async function detectMode() {
+  try {
+    const resp = await fetch(`${liveBase}/fhir/metadata`, { signal: AbortSignal.timeout(1500) });
+    if (resp.ok) {
+      isLiveMode = true;
+      document.getElementById("modeBadge").className = "badge badge-live";
+      document.getElementById("modeBadge").textContent = "Live Server";
+    }
+  } catch {
+    // stay simulated
+  }
+}
+
+// =========================================================================
+// Payload Builders
+// =========================================================================
+
+function makePatient(id, mbi, family, given, gender, birthDate) {
+  const p = {
+    resourceType: "Patient",
+    id: id,
+    meta: { profile: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient|6.1.0"] },
+    identifier: [],
+    name: [{ family, given: [given] }],
+    gender,
+    birthDate,
+  };
+  if (mbi) {
+    p.identifier.push({
+      type: { coding: [{ system: "http://terminology.hl7.org/CodeSystem/v2-0203", code: "MC" }] },
+      system: MBI_SYSTEM,
+      value: mbi,
+    });
+  }
+  return p;
+}
+
+function makeCondition(icd10, display, patientId, profile) {
+  return {
+    resourceType: "Condition",
+    meta: { profile: profile ? [profile] : undefined },
+    clinicalStatus: { coding: [{ system: "http://terminology.hl7.org/CodeSystem/condition-clinical", code: "active" }] },
+    verificationStatus: { coding: [{ system: "http://terminology.hl7.org/CodeSystem/condition-ver-status", code: "confirmed" }] },
+    category: [{ coding: [{ system: "http://terminology.hl7.org/CodeSystem/condition-category", code: "problem-list-item" }] }],
+    code: { coding: [{ system: "http://hl7.org/fhir/sid/icd-10-cm", code: icd10, display }] },
+    subject: { reference: `Patient/${patientId}` },
+    onsetDateTime: "2023-01-15",
+  };
+}
+
+function makeTrackParam(trackCode, display) {
+  return {
+    name: "track",
+    valueCodeableConcept: { coding: [{ system: TRACK_CS, code: trackCode, display }] },
+  };
+}
+
+function makeParticipantParam(id) {
+  return { name: "participantID", valueIdentifier: { system: PARTICIPANT_SYSTEM, value: id } };
+}
+
+function makePayerParam() {
+  return {
+    name: "payerID",
+    valueIdentifier: {
+      type: { coding: [{ system: "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType", code: "payerid" }] },
+      system: PAYER_SYSTEM, value: "12345",
+    },
+  };
+}
+
+function makeReasonParam(code, display) {
+  return {
+    name: "reason",
+    valueCodeableConcept: { coding: [{ system: UNALIGN_REASON_CS, code, display }] },
+  };
+}
+
+function makeObservation(loinc, display, value, patientId, isComponent) {
+  const obs = {
+    resourceType: "Observation",
+    status: "final",
+    code: { coding: [{ system: "http://loinc.org", code: loinc, display }] },
+    subject: { reference: `Patient/${patientId}` },
+    effectiveDateTime: new Date().toISOString().split("T")[0],
+  };
+  if (isComponent) {
+    obs.component = [{
+      code: { coding: [{ system: "http://loinc.org", code: "8480-6", display: "Systolic BP" }] },
+      valueQuantity: { value: value, unit: "mmHg", system: "http://unitsofmeasure.org", code: "mm[Hg]" },
+    }, {
+      code: { coding: [{ system: "http://loinc.org", code: "8462-4", display: "Diastolic BP" }] },
+      valueQuantity: { value: Math.round(value * 0.55), unit: "mmHg", system: "http://unitsofmeasure.org", code: "mm[Hg]" },
+    }];
+  } else {
+    obs.valueQuantity = { value, unit: display, system: "http://unitsofmeasure.org" };
+  }
+  return obs;
+}
+
+function makeMeasureReport(track, patientId, date) {
+  const trackLower = track === "eCKM" ? "eckm" : track.toLowerCase();
+  return {
+    resourceType: "MeasureReport",
+    status: "complete",
+    type: "individual",
+    measure: `https://dsacms.github.io/cmmi-access-model/Measure/access-${trackLower}-quality`,
+    subject: { reference: `Patient/${patientId}` },
+    date: date || new Date().toISOString().split("T")[0],
+    period: { start: date || new Date().toISOString().split("T")[0], end: date || new Date().toISOString().split("T")[0] },
+  };
+}
+
+// =========================================================================
+// Scenario Definitions
+// =========================================================================
+
+const TRACK_DEFAULTS = {
+  eCKM: { icd10: "I10", display: "Essential hypertension", profile: "access-eckm-condition", trackDisplay: "Early Cardio-kidney-metabolic track" },
+  CKM: { icd10: "E11.9", display: "Type 2 diabetes mellitus", profile: "access-ckm-condition", trackDisplay: "Cardio-kidney-metabolic track" },
+  MSK: { icd10: "M17.11", display: "Primary osteoarthritis, right knee", profile: "access-msk-condition", trackDisplay: "Musculoskeletal track" },
+  BH: { icd10: "F32.9", display: "Major depressive disorder", profile: "access-bh-condition", trackDisplay: "Behavioral Health track" },
+};
+
+function getTrackDefault() { return TRACK_DEFAULTS[document.getElementById("trackSelect").value]; }
+function getTrack() { return document.getElementById("trackSelect").value; }
+
+function buildEligibilityPayload(opts = {}) {
+  const track = getTrack();
+  const td = getTrackDefault();
+  const patient = makePatient(
+    opts.patientId || "access-test-patient-01",
+    opts.mbi !== undefined ? opts.mbi : "1EG4TE5MK73",
+    opts.family || "Doe", opts.given || "John",
+    opts.gender || "male", opts.birthDate || "1950-01-01"
+  );
+  const params = [
+    makeParticipantParam(opts.participantID || "ACCESS1234"),
+    makePayerParam(),
+    { name: "patient", resource: patient },
+    makeTrackParam(track, td.trackDisplay),
+  ];
+  if (opts.conditions) {
+    for (const c of opts.conditions) {
+      params.push({ name: "condition", resource: makeCondition(c.icd10, c.display, patient.id, `${ACCESS_CS_BASE.replace("/CodeSystem", "")}/StructureDefinition/${c.profile || td.profile}`) });
+    }
+  } else if (opts.noCondition !== true) {
+    params.push({ name: "condition", resource: makeCondition(td.icd10, td.display, patient.id, `${ACCESS_CS_BASE.replace("/CodeSystem", "")}/StructureDefinition/${td.profile}`) });
+  }
+  return { resourceType: "Parameters", parameter: params };
+}
+
+function buildAlignPayload(opts = {}) {
+  const track = getTrack();
+  const td = getTrackDefault();
+  const patient = makePatient(
+    opts.patientId || "access-test-patient-01",
+    opts.mbi !== undefined ? opts.mbi : "1EG4TE5MK73",
+    opts.family || "Doe", opts.given || "John",
+    opts.gender || "male", opts.birthDate || "1950-01-01"
+  );
+  const params = [
+    makeParticipantParam(opts.participantID || "ACCESS1234"),
+    makePayerParam(),
+    { name: "patient", resource: patient },
+    makeTrackParam(track, td.trackDisplay),
+    { name: "condition", resource: makeCondition(opts.icd10 || td.icd10, opts.icd10Display || td.display, patient.id, `${ACCESS_CS_BASE.replace("/CodeSystem", "")}/StructureDefinition/${td.profile}`) },
+    { name: "isProviderReferral", valueBoolean: true },
+  ];
+  if (opts.switchConsent) params.push({ name: "switchConsentAttestation", valueBoolean: true });
+  return { resourceType: "Parameters", parameter: params };
+}
+
+function buildReportPayload(opts = {}) {
+  const track = getTrack();
+  const td = getTrackDefault();
+  const patientId = opts.patientId || "access-test-patient-01";
+  const reportDate = opts.date || new Date().toISOString().split("T")[0];
+  const mr = makeMeasureReport(track, patientId, reportDate);
+  const params = [{ name: "measureReport", resource: mr }];
+
+  const observations = opts.observations || getDefaultObservations(track, patientId);
+  for (const obs of observations) {
+    params.push({ name: "resource", resource: obs });
+  }
+  return { resourceType: "Parameters", parameter: params };
+}
+
+function getDefaultObservations(track, patientId) {
+  const obs = [];
+  if (track === "eCKM") {
+    obs.push(makeObservation("85354-9", "Blood Pressure Panel", 142, patientId, true));
+    obs.push(makeObservation("13457-7", "LDL Cholesterol", 130, patientId));
+    obs.push(makeObservation("2093-3", "Total Cholesterol", 210, patientId));
+    obs.push(makeObservation("2571-8", "Triglycerides", 160, patientId));
+    obs.push(makeObservation("39156-5", "BMI", 28.5, patientId));
+    obs.push(makeObservation("56086-2", "Waist Circumference", 38, patientId));
+    obs.push(makeObservation("1558-6", "Fasting Glucose", 105, patientId));
+    obs.push(makeObservation("4548-4", "HbA1c", 6.2, patientId));
+  } else if (track === "CKM") {
+    obs.push(makeObservation("4548-4", "HbA1c", 7.8, patientId));
+    obs.push(makeObservation("48642-3", "eGFR", 45, patientId));
+    obs.push(makeObservation("85354-9", "Blood Pressure Panel", 148, patientId, true));
+    obs.push(makeObservation("9318-7", "UACR", 150, patientId));
+  } else if (track === "MSK") {
+    obs.push(makeObservation("72514-3", "Pain NRS", 7, patientId));
+    obs.push(makeObservation("77849-8", "PROMIS Physical Function", 35, patientId));
+    obs.push(makeObservation("62193-8", "PROMIS Pain Interference", 62, patientId));
+  } else if (track === "BH") {
+    obs.push(makeObservation("44261-6", "PHQ-9", 16, patientId));
+    obs.push(makeObservation("70274-6", "GAD-7", 14, patientId));
+  }
+  return obs;
+}
+
+function buildUnalignPayload(opts = {}) {
+  const track = getTrack();
+  const td = getTrackDefault();
+  const patient = makePatient(
+    opts.patientId || "access-test-patient-01",
+    opts.mbi !== undefined ? opts.mbi : "1EG4TE5MK73",
+    opts.family || "Doe", opts.given || "John",
+    opts.gender || "male", opts.birthDate || "1950-01-01"
+  );
+  const params = [
+    makeParticipantParam(opts.participantID || "ACCESS1234"),
+    makePayerParam(),
+    { name: "patient", resource: patient },
+    makeTrackParam(track, td.trackDisplay),
+    makeReasonParam(opts.reason || "geographic-relocated", opts.reasonDisplay || "Geographic relocated"),
+  ];
+  if (opts.conditions) {
+    for (const c of opts.conditions) {
+      params.push({ name: "condition", resource: makeCondition(c.icd10, c.display, patient.id, `${ACCESS_CS_BASE.replace("/CodeSystem", "")}/StructureDefinition/${c.profile || "access-clinical-exclusion-condition"}`) });
+    }
+  }
+  return { resourceType: "Parameters", parameter: params };
+}
+
+// Scenario arrays per step
+function getScenarios() {
+  const track = getTrack();
+  const td = getTrackDefault();
+  return {
+    0: [ // $check-eligibility
+      { name: `Eligible ${track} Patient`, hint: `Patient with ${td.display} (${td.icd10}) — should return "eligible".`, build: () => buildEligibilityPayload() },
+      { name: "No Medicare ID", hint: 'Patient without MBI identifier — returns "not-eligible-not-medicare".', build: () => buildEligibilityPayload({ mbi: null }) },
+      { name: "ESRD Exclusion", hint: 'Patient has N18.6 (ESRD) — returns "not-eligible-services".', build: () => buildEligibilityPayload({ conditions: [{ icd10: "N18.6", display: "End stage renal disease", profile: "access-clinical-exclusion-condition" }] }) },
+      { name: "Control Group", hint: 'Pre-computed MBI that hashes into the 20% control group — returns "not-eligible-control-group".', build: () => buildEligibilityPayload({ mbi: "CTRL0000006", family: "Control", given: "Test" }) },
+      { name: `Wrong Diagnosis for ${track}`, hint: `ICD-10 code that doesn't match the selected track — returns "not-eligible-diagnoses".`,
+        build: () => {
+          const wrongCodes = { eCKM: { icd10: "F32.9", display: "Major depressive disorder" }, CKM: { icd10: "M17.11", display: "Knee osteoarthritis" }, MSK: { icd10: "E11.9", display: "Type 2 diabetes" }, BH: { icd10: "I10", display: "Essential hypertension" } };
+          const w = wrongCodes[track];
+          return buildEligibilityPayload({ conditions: [{ icd10: w.icd10, display: w.display }] });
+        }
+      },
+      { name: "No Condition Submitted", hint: 'No condition resource included — returns "eligible-pending-diagnosis".', build: () => buildEligibilityPayload({ noCondition: true }) },
+    ],
+    1: [ // $align
+      { name: `Align ${track} Patient`, hint: `Standard enrollment — should return "aligned".`, build: () => buildAlignPayload() },
+      { name: "Already Aligned (same participant)", hint: 'Patient already aligned by same participant — returns "not-aligned-already-aligned". Run this after a successful align.', build: () => buildAlignPayload() },
+      { name: "No Medicare ID", hint: 'Patient without MBI — returns "not-aligned-not-medicare".', build: () => buildAlignPayload({ mbi: null }) },
+      { name: "ESRD Exclusion", hint: 'Patient has exclusion condition — returns "not-aligned-services".', build: () => {
+        const p = buildAlignPayload();
+        p.parameter.push({ name: "condition", resource: makeCondition("N18.6", "End stage renal disease", "access-test-patient-01", `${ACCESS_CS_BASE.replace("/CodeSystem", "")}/StructureDefinition/access-clinical-exclusion-condition`) });
+        return p;
+      }},
+      { name: "Wrong Diagnosis", hint: `ICD-10 mismatch for ${track} — returns "not-aligned-diagnoses".`,
+        build: () => {
+          const wrongCodes = { eCKM: { icd10: "F32.9", display: "Major depressive disorder" }, CKM: { icd10: "M17.11", display: "Knee osteoarthritis" }, MSK: { icd10: "E11.9", display: "Type 2 diabetes" }, BH: { icd10: "I10", display: "Essential hypertension" } };
+          const w = wrongCodes[track];
+          return buildAlignPayload({ icd10: w.icd10, icd10Display: w.display });
+        }
+      },
+    ],
+    2: [ // $report-data
+      { name: `${track} Baseline Report`, hint: `Submit baseline measures for ${track}. Patient must be aligned first (run Step 2).`, build: () => buildReportPayload() },
+      { name: "Non-Aligned Patient", hint: 'Report for patient not enrolled — returns "rejected-not-aligned".', build: () => buildReportPayload({ patientId: "unknown-patient-999" }) },
+      { name: "Missing Measures", hint: 'Only one measure submitted when multiple are required — returns "rejected-missing-measures".',
+        build: () => {
+          const patientId = "access-test-patient-01";
+          const partial = track === "MSK"
+            ? [makeObservation("72514-3", "Pain NRS", 7, patientId)]
+            : track === "BH"
+            ? [makeObservation("44261-6", "PHQ-9", 16, patientId)]
+            : track === "CKM"
+            ? [makeObservation("4548-4", "HbA1c", 7.8, patientId)]
+            : [makeObservation("85354-9", "Blood Pressure Panel", 142, patientId, true)];
+          return buildReportPayload({ observations: partial });
+        }
+      },
+      { name: "Baseline Overdue (day 65)", hint: `Report submitted 65 days after alignment (exceeds ${BASELINE_WINDOW_DAYS}-day window) — returns "rejected-outside-window".`,
+        build: () => {
+          const pastDate = new Date();
+          pastDate.setDate(pastDate.getDate() + 65);
+          return buildReportPayload({ date: pastDate.toISOString().split("T")[0] });
+        }
+      },
+    ],
+    3: [ // $submission-status
+      { name: "Poll Completed Submission", hint: "Polls a completed submission — returns HTTP 200 with result. Run any operation first.", build: () => "poll" },
+      { name: "Invalid Submission ID", hint: "Polls a non-existent submission — returns HTTP 404.", build: () => "poll-invalid" },
+    ],
+    4: [ // $unalign
+      { name: "Geographic Relocation", hint: 'Standard exit — reason: geographic-relocated. Returns "unaligned".', build: () => buildUnalignPayload() },
+      { name: "Clinical Exclusion (ESRD)", hint: 'Exit due to new ESRD diagnosis — returns "unaligned-clinical-exclusion".',
+        build: () => buildUnalignPayload({
+          reason: "no-longer-clinically-eligible",
+          reasonDisplay: "No longer clinically eligible",
+          conditions: [{ icd10: "N18.6", display: "End stage renal disease" }],
+        })
+      },
+      { name: "Patient Not Aligned", hint: 'Try to unalign a patient who was never enrolled — returns "patient-not-aligned".',
+        build: () => buildUnalignPayload({ mbi: "9XX9XX9XX99", family: "Nobody", given: "None" })
+      },
+      { name: "Loss of Contact", hint: 'Exit due to loss of contact with patient. Returns "unaligned".',
+        build: () => buildUnalignPayload({ reason: "loss-of-contact", reasonDisplay: "Loss of contact" })
+      },
+    ],
+  };
+}
+
+// =========================================================================
+// Step / Panel Definitions
+// =========================================================================
+
+const STEPS = [
+  {
+    title: "Screen Patient",
+    opName: "$check-eligibility",
+    method: "POST",
+    endpoint: "/fhir/Patient/$check-eligibility",
+    explanation: `Checks whether a patient is eligible for the ACCESS Model. CMS evaluates: (1) valid Medicare Beneficiary Identifier, (2) no clinical exclusions (ESRD, dialysis, transplant), (3) not in the randomized control group, (4) not already aligned to another participant, (5) ICD-10 diagnosis matches the selected track.`,
+    resultCodes: [
+      { code: "eligible", desc: "Patient passes all checks — proceed to enrollment" },
+      { code: "not-eligible-not-medicare", desc: "No valid MBI found on the Patient resource" },
+      { code: "not-eligible-services", desc: "Patient has an exclusion condition (ESRD, dialysis, transplant)" },
+      { code: "not-eligible-control-group", desc: "Patient randomized into the 20% control arm" },
+      { code: "not-eligible-already-aligned", desc: "Patient already enrolled by a different participant" },
+      { code: "not-eligible-diagnoses", desc: "ICD-10 code doesn't match the selected track" },
+      { code: "eligible-pending-diagnosis", desc: "No condition submitted yet — eligible pending diagnosis confirmation" },
+      { code: "eligible-switch-participants", desc: "Already aligned to same track — eligible to switch participants" },
+    ],
+    fieldGuide: [
+      { field: "patient.identifier (MBI)", desc: 'Medicare Beneficiary Identifier — the system must be "http://terminology.hl7.org/NamingSystem/cmsMBI"' },
+      { field: "track", desc: "The clinical track (eCKM, CKM, MSK, BH) as a CodeableConcept from ACCESSTrackCS" },
+      { field: "condition.code", desc: "ICD-10-CM diagnosis code that must match the selected track's valid prefix list" },
+      { field: "participantID", desc: "The ACCESS Model participant organization ID" },
+    ],
+  },
+  {
+    title: "Enroll Patient",
+    opName: "$align",
+    method: "POST",
+    endpoint: "/fhir/Patient/$align",
+    explanation: `Formally enrolls (aligns) a patient into the ACCESS Model under a specific track and participant. Similar validations to eligibility, plus a 90-day lock-in period during which patients cannot switch participants. After lock-in expires, switching requires switchConsentAttestation=true.`,
+    resultCodes: [
+      { code: "aligned", desc: "Patient successfully enrolled" },
+      { code: "aligned-switch-approved", desc: "Patient switched from one participant to another (lock-in expired + consent)" },
+      { code: "not-aligned-not-medicare", desc: "No valid MBI" },
+      { code: "not-aligned-control-group", desc: "Patient in control group" },
+      { code: "not-aligned-services", desc: "Exclusion condition present" },
+      { code: "not-aligned-diagnoses", desc: "ICD-10 mismatch" },
+      { code: "not-aligned-already-aligned", desc: "Already enrolled (same participant or within lock-in)" },
+    ],
+    fieldGuide: [
+      { field: "switchConsentAttestation", desc: "Boolean — required to switch participants after the 90-day lock-in period expires" },
+      { field: "isProviderReferral", desc: "Boolean — whether this enrollment came from a provider referral" },
+    ],
+  },
+  {
+    title: "Report Data",
+    opName: "$report-data",
+    method: "POST",
+    endpoint: "/fhir/$report-data",
+    explanation: `Submits clinical measures (Observations) wrapped in a MeasureReport. CMS determines the report type (baseline, quarterly, end-of-period) automatically from timing. Baseline must be within ${BASELINE_WINDOW_DAYS} days of alignment. Quarterly windows are 70-110 days apart. Each track requires specific LOINC-coded measures.`,
+    resultCodes: [
+      { code: "accepted", desc: "Report stored successfully" },
+      { code: "rejected-not-aligned", desc: "Patient not enrolled or alignment inactive" },
+      { code: "rejected-missing-measures", desc: "Required LOINC codes not all present for this track/report type" },
+      { code: "rejected-outside-window", desc: "Baseline overdue or quarterly submitted too soon" },
+    ],
+    fieldGuide: [
+      { field: "measureReport", desc: "A FHIR MeasureReport with .measure URL containing the track (e.g., access-eckm-quality)" },
+      { field: "resource (Observation)", desc: "Each clinical measure as a separate Observation with LOINC coding" },
+      { field: "MeasureReport.date", desc: "Report date — used to calculate report type timing relative to alignment date" },
+    ],
+  },
+  {
+    title: "Poll Submission Status",
+    opName: "$submission-status",
+    method: "GET",
+    endpoint: "/fhir/Patient/$submission-status?submissionID=...",
+    explanation: `All ACCESS operations use async processing. After submitting, you receive HTTP 202 with a Content-Location header containing a submissionID. Poll this endpoint until you get HTTP 200 (complete) instead of 202 (pending). The completed response contains the actual result Parameters.`,
+    resultCodes: [
+      { code: "HTTP 200", desc: "Submission complete — result in body" },
+      { code: "HTTP 202", desc: "Still processing — retry after delay" },
+      { code: "HTTP 404", desc: "Submission ID not found" },
+    ],
+    fieldGuide: [
+      { field: "submissionID", desc: "Query parameter — the ID from the Content-Location header of the 202 response" },
+    ],
+  },
+  {
+    title: "Exit / Unalign",
+    opName: "$unalign",
+    method: "POST",
+    endpoint: "/fhir/Patient/$unalign",
+    explanation: `Removes a patient from the ACCESS Model. Requires a reason code: geographic-relocated, loss-of-contact, no-longer-clinically-eligible (must include exclusion condition), or patient-initiated. The alignment status changes to "unaligned".`,
+    resultCodes: [
+      { code: "unaligned", desc: "Patient successfully removed" },
+      { code: "unaligned-clinical-exclusion", desc: "Removed due to new clinical exclusion (e.g., ESRD)" },
+      { code: "patient-not-aligned", desc: "Patient was not enrolled or no active alignment found" },
+    ],
+    fieldGuide: [
+      { field: "reason", desc: 'CodeableConcept from ACCESSUnalignmentReasonCS: "geographic-relocated", "loss-of-contact", "no-longer-clinically-eligible", "patient-initiated"' },
+      { field: "condition (for clinical exclusion)", desc: "When reason is no-longer-clinically-eligible, include the exclusion Condition (N18.6, Z99.2, Z94.0)" },
+    ],
+  },
+];
+
+// =========================================================================
+// Result Explanations
+// =========================================================================
+
+const RESULT_EXPLANATIONS = {
+  // Eligibility
+  "eligible": { icon: "check", color: "green", title: "Patient is Eligible", body: "All checks passed. The patient has a valid MBI, no exclusion conditions, is not in the control group, and has a qualifying diagnosis for this track.", next: "Proceed to Step 2 ($align) to formally enroll this patient." },
+  "not-eligible-not-medicare": { icon: "x", color: "red", title: "Not Eligible — No Medicare ID", body: "The Patient resource is missing a valid Medicare Beneficiary Identifier (MBI). The identifier must use the system 'http://terminology.hl7.org/NamingSystem/cmsMBI'.", next: "Add a valid MBI to the Patient.identifier array and retry." },
+  "not-eligible-services": { icon: "x", color: "red", title: "Not Eligible — Clinical Exclusion", body: "The patient has a condition that excludes them from ACCESS: End Stage Renal Disease (N18.6), dependence on dialysis (Z99.2), or kidney transplant status (Z94.0).", next: "This patient cannot participate in ACCESS due to their clinical status." },
+  "not-eligible-control-group": { icon: "x", color: "yellow", title: "Not Eligible — Control Group", body: "This patient was randomly assigned to the 20% control group based on a deterministic SHA-256 hash of their MBI + track. Control group patients receive usual care for comparison.", next: "This is not an error — it's part of the study design. Try a different MBI." },
+  "not-eligible-already-aligned": { icon: "x", color: "red", title: "Not Eligible — Already Aligned", body: "This patient is already enrolled in this track by a different ACCESS participant organization.", next: "The patient must be unaligned by the current participant before re-enrollment." },
+  "not-eligible-diagnoses": { icon: "x", color: "red", title: "Not Eligible — Wrong Diagnosis", body: "The submitted ICD-10 code does not match the valid diagnosis prefix list for this track. Each track only accepts specific condition categories.", next: "Check the Track Reference to see valid ICD-10 prefixes for this track, or select a different track." },
+  "eligible-pending-diagnosis": { icon: "check", color: "yellow", title: "Eligible — Pending Diagnosis", body: "The patient is eligible based on MBI and absence of exclusions, but no Condition resource was submitted. A qualifying diagnosis is needed for enrollment.", next: "Include a Condition resource with a valid ICD-10 code for this track and re-submit." },
+  "eligible-switch-participants": { icon: "check", color: "green", title: "Eligible — Can Switch Participants", body: "The patient is already aligned to this track. They are eligible to switch to a different participant organization if the 90-day lock-in has expired.", next: "Use $align with switchConsentAttestation=true to complete the switch." },
+  // Alignment
+  "aligned": { icon: "check", color: "green", title: "Patient Enrolled Successfully", body: "The patient is now formally aligned to this track under your participant organization. A baseline report must be submitted within 60 days.", next: "Proceed to Step 3 ($report-data) to submit the baseline clinical measures." },
+  "aligned-switch-approved": { icon: "check", color: "green", title: "Switch Approved", body: "The patient has been switched from their previous participant to yours. The 90-day lock-in period has expired and consent was attested.", next: "Proceed to Step 3 ($report-data) for ongoing data submission." },
+  "not-aligned-not-medicare": { icon: "x", color: "red", title: "Not Aligned — No Medicare ID", body: "The Patient resource is missing a valid MBI.", next: "Add a valid MBI and retry." },
+  "not-aligned-control-group": { icon: "x", color: "yellow", title: "Not Aligned — Control Group", body: "This patient is in the randomized control group and cannot be enrolled.", next: "This patient receives usual care." },
+  "not-aligned-services": { icon: "x", color: "red", title: "Not Aligned — Clinical Exclusion", body: "An exclusion condition (ESRD, dialysis, transplant) was found.", next: "This patient cannot participate." },
+  "not-aligned-diagnoses": { icon: "x", color: "red", title: "Not Aligned — Wrong Diagnosis", body: "The ICD-10 code doesn't match this track's valid prefixes.", next: "Check Track Reference for valid codes." },
+  "not-aligned-already-aligned": { icon: "x", color: "yellow", title: "Not Aligned — Already Enrolled", body: "The patient is already aligned. If this is the same participant, they're already enrolled. If different, the 90-day lock-in may still be active.", next: "Wait for lock-in to expire, then use switchConsentAttestation=true." },
+  // Report Data
+  "accepted": { icon: "check", color: "green", title: "Report Accepted", body: "The clinical data report was accepted and stored. All required measures for this track and report type were present.", next: "Continue submitting quarterly reports every 70-110 days." },
+  "rejected-not-aligned": { icon: "x", color: "red", title: "Report Rejected — Not Aligned", body: "No active alignment found for this patient in this track. The patient must be enrolled before data can be reported.", next: "Go to Step 2 ($align) to enroll the patient first." },
+  "rejected-missing-measures": { icon: "x", color: "red", title: "Report Rejected — Missing Measures", body: "Not all required LOINC-coded observations were included. Each track requires specific clinical measures per report type.", next: "Check Track Reference for required LOINC codes and include all of them." },
+  "rejected-outside-window": { icon: "x", color: "red", title: "Report Rejected — Outside Window", body: "The report timing doesn't match the expected window. Baseline must be within 60 days of alignment. Quarterly reports must be 70-110 days apart.", next: "Adjust the MeasureReport.date to fall within the valid window." },
+  // Unalignment
+  "unaligned": { icon: "check", color: "green", title: "Patient Unaligned", body: "The patient has been successfully removed from the ACCESS Model for the stated reason.", next: "The patient lifecycle is complete. Reset state to start over." },
+  "unaligned-clinical-exclusion": { icon: "check", color: "yellow", title: "Unaligned — Clinical Exclusion", body: "The patient was removed because they developed a clinical exclusion condition (e.g., ESRD). The exclusion condition was confirmed.", next: "The patient can no longer participate due to clinical status." },
+  "patient-not-aligned": { icon: "x", color: "red", title: "Patient Not Aligned", body: "No active alignment was found for this patient. They were either never enrolled or have already been unaligned.", next: "Check the State Inspector to see current alignments." },
+};
+
+// =========================================================================
+// UI Rendering
+// =========================================================================
+
+function renderPanels() {
+  const main = document.getElementById("mainContent");
+  main.innerHTML = "";
+  STEPS.forEach((step, i) => {
+    const panel = document.createElement("div");
+    panel.id = `panel-${i}`;
+    panel.style.display = i === currentStep ? "block" : "none";
+    panel.innerHTML = `
+      <div class="panel-header">
+        <h2><span class="op-name">${step.opName}</span> — ${step.title}</h2>
+        <div class="endpoint-line">
+          <span class="method-badge method-${step.method.toLowerCase()}">${step.method}</span>
+          <span>${step.endpoint}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <span>What This Does</span>
+          <span class="toggle">&#9660;</span>
+        </div>
+        <div class="card-body">
+          <p>${step.explanation}</p>
+          <div class="card" style="margin-top: 12px; border: none;">
+            <div class="card-header" onclick="toggleCard(this)" style="background: var(--bg-0);">
+              <span>Result Codes</span>
+              <span class="toggle">&#9654;</span>
+            </div>
+            <div class="card-body collapsed">
+              <table class="result-table">
+                <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+                <tbody>${step.resultCodes.map(rc => `<tr><td><code>${rc.code}</code></td><td>${rc.desc}</td></tr>`).join("")}</tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      ${i !== 3 ? `
+      <div class="card">
+        <div class="card-header" style="cursor: default;">Scenario</div>
+        <div class="card-body">
+          <div class="scenario-row">
+            <select id="scenario-${i}" onchange="onScenarioChange(${i})"></select>
+          </div>
+          <div class="scenario-hint" id="hint-${i}"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <span>Request Payload</span>
+          <span class="toggle">&#9660;</span>
+        </div>
+        <div class="card-body">
+          <div class="editor-wrap">
+            <textarea id="editor-${i}" spellcheck="false"></textarea>
+            <button class="btn btn-small copy-btn" onclick="copyEditor(${i})">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="border: none; background: none;">
+        <div class="card-header" onclick="toggleCard(this)" style="background: var(--bg-2);">
+          <span>Field Guide</span>
+          <span class="toggle">&#9654;</span>
+        </div>
+        <div class="card-body collapsed">
+          <dl class="field-guide">
+            ${step.fieldGuide.map(f => `<dt>${f.field}</dt><dd>${f.desc}</dd>`).join("")}
+          </dl>
+        </div>
+      </div>
+
+      <div style="margin: 16px 0;">
+        <button class="btn btn-send" id="send-${i}" onclick="sendRequest(${i})">Send Request</button>
+      </div>
+      ` : `
+      <div class="card">
+        <div class="card-header" style="cursor: default;">Scenario</div>
+        <div class="card-body">
+          <div class="scenario-row">
+            <select id="scenario-${i}" onchange="onScenarioChange(${i})"></select>
+          </div>
+          <div class="scenario-hint" id="hint-${i}"></div>
+        </div>
+      </div>
+      <div style="margin: 16px 0;">
+        <button class="btn btn-send" id="send-${i}" onclick="sendRequest(${i})">Poll Submission</button>
+      </div>
+      `}
+
+      <div class="response-section" id="response-${i}">
+        <div class="card">
+          <div class="card-header" style="cursor: default;">
+            <span>Response</span>
+            <button class="btn btn-small" onclick="copyResponse(${i})">Copy</button>
+          </div>
+          <div class="card-body">
+            <div class="pipeline" id="pipeline-${i}"></div>
+            <div class="json-output" id="json-${i}"></div>
+            <div id="explain-${i}"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    main.appendChild(panel);
+  });
+  populateScenarios();
+}
+
+function populateScenarios() {
+  const scenarios = getScenarios();
+  for (let i = 0; i < STEPS.length; i++) {
+    const sel = document.getElementById(`scenario-${i}`);
+    if (!sel) continue;
+    const sc = scenarios[i] || [];
+    sel.innerHTML = sc.map((s, j) => `<option value="${j}">${s.name}</option>`).join("");
+    onScenarioChange(i);
+  }
+}
+
+function onScenarioChange(step) {
+  const scenarios = getScenarios();
+  const sel = document.getElementById(`scenario-${step}`);
+  const idx = parseInt(sel.value, 10);
+  const sc = scenarios[step]?.[idx];
+  if (!sc) return;
+  document.getElementById(`hint-${step}`).textContent = sc.hint;
+  const editor = document.getElementById(`editor-${step}`);
+  if (editor) {
+    const payload = sc.build();
+    if (typeof payload === "string") return; // poll scenarios don't have editors
+    editor.value = JSON.stringify(payload, null, 2);
+  }
+}
+
+function onTrackChange() {
+  populateScenarios();
+}
+
+// =========================================================================
+// UI Interactions
+// =========================================================================
+
+function switchStep(step) {
+  document.querySelectorAll(".step-list li").forEach(li => li.classList.remove("active"));
+  document.querySelectorAll(".step-list li")[step].classList.add("active");
+  STEPS.forEach((_, i) => {
+    const p = document.getElementById(`panel-${i}`);
+    if (p) p.style.display = i === step ? "block" : "none";
+  });
+  currentStep = step;
+}
+
+function toggleCard(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle("collapsed");
+  const toggle = header.querySelector(".toggle");
+  if (toggle) toggle.innerHTML = body.classList.contains("collapsed") ? "&#9654;" : "&#9660;";
+}
+
+function copyEditor(step) {
+  const editor = document.getElementById(`editor-${step}`);
+  navigator.clipboard.writeText(editor.value);
+}
+
+function copyResponse(step) {
+  const json = document.getElementById(`json-${step}`);
+  navigator.clipboard.writeText(json.textContent);
+}
+
+// =========================================================================
+// JSON Syntax Highlighting
+// =========================================================================
+
+function highlightJSON(obj) {
+  const str = JSON.stringify(obj, null, 2);
+  return str.replace(/("(?:\\.|[^"\\])*")\s*:/g, '<span class="json-key">$1</span>:')
+    .replace(/:\s*("(?:\\.|[^"\\])*")/g, ': <span class="json-string">$1</span>')
+    .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+    .replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>')
+    .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+}
+
+// =========================================================================
+// Request Execution
+// =========================================================================
+
+async function sendRequest(step) {
+  const btn = document.getElementById(`send-${step}`);
+  btn.disabled = true;
+  const responseSection = document.getElementById(`response-${step}`);
+  responseSection.classList.add("visible");
+  const pipelineEl = document.getElementById(`pipeline-${step}`);
+  const jsonEl = document.getElementById(`json-${step}`);
+  const explainEl = document.getElementById(`explain-${step}`);
+
+  try {
+    if (step === 3) {
+      // Poll scenario
+      await handlePollStep(step, pipelineEl, jsonEl, explainEl);
+    } else {
+      await handleOperationStep(step, pipelineEl, jsonEl, explainEl);
+    }
+  } catch (err) {
+    jsonEl.innerHTML = highlightJSON({ error: err.message });
+    explainEl.innerHTML = '';
+  }
+  btn.disabled = false;
+  updateStateCounts();
+}
+
+async function handleOperationStep(step, pipelineEl, jsonEl, explainEl) {
+  const editor = document.getElementById(`editor-${step}`);
+  let payload;
+  try {
+    payload = JSON.parse(editor.value);
+  } catch (e) {
+    jsonEl.innerHTML = `<span class="json-boolean">Invalid JSON: ${e.message}</span>`;
+    pipelineEl.innerHTML = '';
+    explainEl.innerHTML = '';
+    return;
+  }
+
+  // Phase 1: Send request (show 202)
+  pipelineEl.innerHTML = `
+    <span class="pipeline-step active"><span class="http-badge http-202">202</span> Accepted</span>
+    <span class="pipeline-arrow">&rarr;</span>
+    <span class="pipeline-step">Polling<span class="dots"></span></span>
+    <span class="pipeline-arrow">&rarr;</span>
+    <span class="pipeline-step"><span class="http-badge" style="opacity:0.3">200</span> Result</span>
+  `;
+  jsonEl.innerHTML = highlightJSON({ resourceType: "OperationOutcome", issue: [{ severity: "information", code: "informational", diagnostics: "Request accepted. Processing..." }] });
+  explainEl.innerHTML = '';
+
+  let result;
+  let httpStatus = 200;
+
+  if (isLiveMode) {
+    // Live mode: real HTTP
+    const opEndpoints = [
+      "/fhir/Patient/$check-eligibility",
+      "/fhir/Patient/$align",
+      "/fhir/$report-data",
+      null,
+      "/fhir/Patient/$unalign",
+    ];
+    const resp = await fetch(`${liveBase}${opEndpoints[step]}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/fhir+json", "Accept": "application/fhir+json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (resp.status === 202) {
+      const contentLocation = resp.headers.get("Content-Location");
+      const subIdMatch = contentLocation?.match(/submissionID=([^&]+)/);
+      lastSubmissionId = subIdMatch ? subIdMatch[1] : null;
+
+      // Phase 2: Polling animation
+      await sleep(300);
+      pipelineEl.innerHTML = `
+        <span class="pipeline-step done"><span class="http-badge http-202">202</span> Accepted</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step active">Polling<span class="dots"></span></span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step"><span class="http-badge" style="opacity:0.3">200</span> Result</span>
+      `;
+
+      // Poll
+      let pollResult;
+      for (let i = 0; i < 20; i++) {
+        await sleep(600);
+        const pollResp = await fetch(`${liveBase}${contentLocation}`);
+        if (pollResp.status === 200) {
+          pollResult = await pollResp.json();
+          httpStatus = 200;
+          break;
+        }
+      }
+      result = pollResult;
+    } else if (resp.status === 400) {
+      result = await resp.json();
+      httpStatus = 400;
+    } else {
+      result = await resp.json();
+      httpStatus = resp.status;
+    }
+  } else {
+    // Simulated mode
+    const operations = [
+      p => mockEngine.processCheckEligibility(p),
+      p => mockEngine.processAlign(p),
+      p => mockEngine.processReportData(p),
+      null,
+      p => mockEngine.processUnalign(p),
+    ];
+
+    const rawResult = await operations[step](payload);
+
+    // Handle $report-data which returns { error } or { result }
+    if (step === 2) {
+      if (rawResult.error) {
+        result = rawResult.error;
+        httpStatus = 400;
+      } else {
+        result = rawResult.result;
+      }
+    } else {
+      result = rawResult;
+    }
+
+    // Simulate the async 202 → poll → 200 pattern
+    const subId = mockEngine.newSubmissionID();
+    mockEngine.submissions.set(subId, { type: STEPS[step].opName.replace("$", ""), status: "pending", result, createdAt: Date.now() });
+    lastSubmissionId = subId;
+
+    await sleep(400);
+    pipelineEl.innerHTML = `
+      <span class="pipeline-step done"><span class="http-badge http-202">202</span> Accepted</span>
+      <span class="pipeline-arrow">&rarr;</span>
+      <span class="pipeline-step active">Polling<span class="dots"></span></span>
+      <span class="pipeline-arrow">&rarr;</span>
+      <span class="pipeline-step"><span class="http-badge" style="opacity:0.3">200</span> Result</span>
+    `;
+
+    await sleep(600);
+    mockEngine.submissions.get(subId).status = "complete";
+  }
+
+  // Phase 3: Show result
+  if (httpStatus >= 400) {
+    pipelineEl.innerHTML = `
+      <span class="pipeline-step done"><span class="http-badge http-202">202</span> Accepted</span>
+      <span class="pipeline-arrow">&rarr;</span>
+      <span class="pipeline-step error"><span class="http-badge http-4xx">${httpStatus}</span> Error</span>
+    `;
+  } else {
+    pipelineEl.innerHTML = `
+      <span class="pipeline-step done"><span class="http-badge http-202">202</span> Accepted</span>
+      <span class="pipeline-arrow">&rarr;</span>
+      <span class="pipeline-step done">Polled</span>
+      <span class="pipeline-arrow">&rarr;</span>
+      <span class="pipeline-step done"><span class="http-badge http-2xx">200</span> Complete</span>
+    `;
+  }
+
+  jsonEl.innerHTML = highlightJSON(result);
+
+  // Extract result code and show explanation
+  const resultCode = extractResultCode(result);
+  if (resultCode && RESULT_EXPLANATIONS[resultCode]) {
+    const exp = RESULT_EXPLANATIONS[resultCode];
+    explainEl.innerHTML = `
+      <div class="result-box result-${exp.color}">
+        <h4>${exp.icon === "check" ? "\u2713" : exp.icon === "x" ? "\u2717" : "\u26A0"} ${exp.title}</h4>
+        <div class="body">${exp.body}</div>
+        <div class="next-step">${exp.next}</div>
+      </div>
+    `;
+  } else {
+    explainEl.innerHTML = '';
+  }
+
+  // Mark step as completed in sidebar
+  const stepLi = document.querySelectorAll(".step-list li")[step];
+  if (!stepLi.classList.contains("active")) stepLi.classList.add("completed");
+}
+
+async function handlePollStep(step, pipelineEl, jsonEl, explainEl) {
+  const scenarios = getScenarios();
+  const sel = document.getElementById(`scenario-${step}`);
+  const idx = parseInt(sel.value, 10);
+  const sc = scenarios[step][idx];
+  const scenarioType = sc.build();
+
+  if (scenarioType === "poll-invalid") {
+    // Poll with invalid ID
+    pipelineEl.innerHTML = `
+      <span class="pipeline-step active"><span class="method-badge method-get">GET</span> Polling...</span>
+    `;
+    await sleep(400);
+
+    let result;
+    let httpStatus = 404;
+    if (isLiveMode) {
+      const resp = await fetch(`${liveBase}/fhir/Patient/$submission-status?submissionID=invalid-id-999`);
+      result = await resp.json();
+      httpStatus = resp.status;
+    } else {
+      const r = mockEngine.processSubmissionStatus("invalid-id-999");
+      result = r.body;
+      httpStatus = r.status;
+    }
+
+    pipelineEl.innerHTML = `<span class="pipeline-step error"><span class="http-badge http-4xx">${httpStatus}</span> Not Found</span>`;
+    jsonEl.innerHTML = highlightJSON(result);
+    explainEl.innerHTML = `
+      <div class="result-box result-red">
+        <h4>\u2717 Submission Not Found</h4>
+        <div class="body">The submissionID does not exist. It may have been cleared by a state reset, or it was never created.</div>
+        <div class="next-step">Run an operation first to create a submission, then poll with the returned ID.</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Poll completed submission
+  if (!lastSubmissionId) {
+    pipelineEl.innerHTML = '';
+    jsonEl.innerHTML = '<span class="json-boolean">No submission to poll. Run an operation first (Steps 1-3 or 5).</span>';
+    explainEl.innerHTML = '';
+    return;
+  }
+
+  pipelineEl.innerHTML = `
+    <span class="pipeline-step active"><span class="method-badge method-get">GET</span> Polling ${lastSubmissionId}<span class="dots"></span></span>
+  `;
+  await sleep(500);
+
+  let result, httpStatus;
+  if (isLiveMode) {
+    const resp = await fetch(`${liveBase}/fhir/Patient/$submission-status?submissionID=${lastSubmissionId}`);
+    result = await resp.json();
+    httpStatus = resp.status;
+  } else {
+    const r = mockEngine.processSubmissionStatus(lastSubmissionId);
+    result = r.body;
+    httpStatus = r.status;
+  }
+
+  if (httpStatus === 200) {
+    pipelineEl.innerHTML = `<span class="pipeline-step done"><span class="http-badge http-2xx">200</span> Complete</span>`;
+  } else if (httpStatus === 202) {
+    pipelineEl.innerHTML = `<span class="pipeline-step active"><span class="http-badge http-202">202</span> Still Pending</span>`;
+  } else {
+    pipelineEl.innerHTML = `<span class="pipeline-step error"><span class="http-badge http-4xx">${httpStatus}</span> Error</span>`;
+  }
+
+  jsonEl.innerHTML = highlightJSON(result);
+
+  // Explain the poll result
+  if (httpStatus === 200) {
+    const innerResult = result?.parameter?.find(p => p.name === "result")?.resource;
+    const resultCode = extractResultCode(innerResult);
+    const exp = resultCode && RESULT_EXPLANATIONS[resultCode];
+    if (exp) {
+      explainEl.innerHTML = `
+        <div class="result-box result-${exp.color}">
+          <h4>${exp.icon === "check" ? "\u2713" : exp.icon === "x" ? "\u2717" : "\u26A0"} ${exp.title}</h4>
+          <div class="body">${exp.body}</div>
+          <div class="next-step">${exp.next}</div>
+        </div>
+      `;
+    } else {
+      explainEl.innerHTML = `<div class="result-box result-green"><h4>\u2713 Submission Complete</h4><div class="body">The async operation has finished processing.</div></div>`;
+    }
+  } else if (httpStatus === 202) {
+    explainEl.innerHTML = `<div class="result-box result-yellow"><h4>\u26A0 Still Processing</h4><div class="body">The submission is not yet complete. Poll again after a short delay.</div></div>`;
+  }
+}
+
+function extractResultCode(result) {
+  if (!result) return null;
+  // Direct Parameters with result
+  const resultParam = result?.parameter?.find(p => p.name === "result");
+  if (resultParam?.valueCodeableConcept) {
+    return resultParam.valueCodeableConcept.coding?.[0]?.code;
+  }
+  // Nested resource
+  if (resultParam?.resource) {
+    return extractResultCode(resultParam.resource);
+  }
+  return null;
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// =========================================================================
+// State Inspector
+// =========================================================================
+
+function toggleStateInspector() {
+  const inspector = document.getElementById("stateInspector");
+  inspector.classList.toggle("open");
+  const toggle = document.getElementById("stateToggle");
+  toggle.innerHTML = inspector.classList.contains("open") ? "&#9660;" : "&#9650;";
+  if (inspector.classList.contains("open")) refreshStateInspector();
+}
+
+async function refreshStateInspector() {
+  const jsonEl = document.getElementById("stateJson");
+  let state;
+  if (isLiveMode) {
+    try {
+      const resp = await fetch(`${liveBase}/fhir/$mock-state`);
+      state = await resp.json();
+    } catch {
+      state = { error: "Could not fetch state from server" };
+    }
+  } else {
+    state = mockEngine.getState();
+  }
+  jsonEl.innerHTML = highlightJSON(state);
+}
+
+async function updateStateCounts() {
+  let state;
+  if (isLiveMode) {
+    try {
+      const resp = await fetch(`${liveBase}/fhir/$mock-state`);
+      state = await resp.json();
+    } catch { return; }
+  } else {
+    state = mockEngine.getState();
+  }
+  document.getElementById("alignCount").textContent = Object.keys(state.alignments || {}).length;
+  document.getElementById("subCount").textContent = Object.keys(state.submissions || {}).length;
+  document.getElementById("reportCount").textContent = Object.keys(state.dataReports || {}).length;
+
+  if (document.getElementById("stateInspector").classList.contains("open")) {
+    document.getElementById("stateJson").innerHTML = highlightJSON(state);
+  }
+}
+
+async function resetState() {
+  if (isLiveMode) {
+    await fetch(`${liveBase}/fhir/$mock-reset`, { method: "POST" });
+  } else {
+    mockEngine.reset();
+  }
+  lastSubmissionId = null;
+  // Clear all response sections
+  for (let i = 0; i < STEPS.length; i++) {
+    const rs = document.getElementById(`response-${i}`);
+    if (rs) rs.classList.remove("visible");
+  }
+  // Reset sidebar completed states
+  document.querySelectorAll(".step-list li").forEach(li => li.classList.remove("completed"));
+  document.querySelectorAll(".step-list li")[currentStep].classList.add("active");
+  updateStateCounts();
+  if (document.getElementById("stateInspector").classList.contains("open")) refreshStateInspector();
+}
+
+// =========================================================================
+// Track Reference Modal
+// =========================================================================
+
+function openTrackRef() {
+  const track = getTrack();
+  const info = TRACK_INFO[track];
+  document.getElementById("trackRefTitle").textContent = `${track} — ${info.name}`;
+  const body = document.getElementById("trackRefBody");
+
+  const loincsByType = TRACK_REQUIRED_LOINCS[track];
+  let loincTableRows = "";
+  for (const [type, loincs] of Object.entries(loincsByType)) {
+    for (const loinc of loincs) {
+      loincTableRows += `<tr><td><code>${loinc}</code></td><td>${LOINC_NAMES[loinc] || loinc}</td><td>${type}</td></tr>`;
+    }
+  }
+
+  let altRows = "";
+  if (track === "MSK") {
+    for (const [primary, alts] of Object.entries(MSK_ALTERNATIVE_LOINCS)) {
+      for (const alt of alts) {
+        altRows += `<tr><td><code>${alt}</code></td><td>${LOINC_NAMES[alt] || alt}</td><td>Alternative for ${primary}</td></tr>`;
+      }
+    }
+  }
+
+  body.innerHTML = `
+    <p>${info.description}</p>
+
+    <h3>Valid ICD-10 Code Prefixes</h3>
+    <table>
+      <thead><tr><th>Prefix</th><th>Description</th></tr></thead>
+      <tbody>${info.icd10.map(i => `<tr><td><code>${i.prefix}</code></td><td>${i.desc}</td></tr>`).join("")}</tbody>
+    </table>
+
+    <h3>Required LOINC Codes by Report Type</h3>
+    <table>
+      <thead><tr><th>LOINC</th><th>Measure</th><th>Report Type</th></tr></thead>
+      <tbody>${loincTableRows}</tbody>
+    </table>
+
+    ${altRows ? `
+    <h3>MSK Alternative Instruments</h3>
+    <table>
+      <thead><tr><th>LOINC</th><th>Instrument</th><th>Notes</th></tr></thead>
+      <tbody>${altRows}</tbody>
+    </table>
+    ` : ""}
+
+    <h3>OAP Targets (Outcome Assessment)</h3>
+    <table>
+      <thead><tr><th>LOINC</th><th>Target</th></tr></thead>
+      <tbody>${info.oap.map(o => `<tr><td><code>${o.loinc}</code></td><td>${o.target}</td></tr>`).join("")}</tbody>
+    </table>
+
+    <h3>Clinical Exclusions</h3>
+    <p><code>${info.exclusions}</code></p>
+  `;
+
+  document.getElementById("trackRefModal").classList.add("visible");
+}
+
+function closeTrackRef() {
+  document.getElementById("trackRefModal").classList.remove("visible");
+}
+
+// Close modal on overlay click
+document.getElementById("trackRefModal").addEventListener("click", e => {
+  if (e.target === e.currentTarget) closeTrackRef();
+});
+
+// =========================================================================
+// Init
+// =========================================================================
+
+async function init() {
+  await detectMode();
+  renderPanels();
+  updateStateCounts();
+}
+
+init();
+</script>
+</body>
+</html>

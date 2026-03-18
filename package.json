@@ -1,0 +1,21 @@
+{
+  "name": "access-model-testing",
+  "version": "1.0.0",
+  "description": "CMS ACCESS Model Mock FHIR Server & E2E Tests — Educational toolkit for learning the ACCESS lifecycle before the real API launches July 2026",
+  "scripts": {
+    "start:mock": "node scripts/mock-access-server.js",
+    "load": "node scripts/load_ig_resources.js",
+    "test": "node scripts/test_access_e2e.js",
+    "test:full": "node scripts/load_ig_resources.js && node scripts/test_access_e2e.js"
+  },
+  "keywords": ["fhir", "cms", "access-model", "mock-server", "healthcare"],
+  "author": "RevelAi Health",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

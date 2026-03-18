@@ -1,0 +1,117 @@
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "participantID",
+      "valueIdentifier": {
+        "system": "https://dsacms.github.io/cmmi-access-model/participant-id",
+        "value": "ACCESS1234"
+      }
+    },
+    {
+      "name": "payerID",
+      "valueIdentifier": {
+        "type": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
+              "code": "payerid"
+            }
+          ]
+        },
+        "system": "urn:oid:2.16.840.1.113883.3.221.5",
+        "value": "12345"
+      }
+    },
+    {
+      "name": "patient",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "access-test-patient-02",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient|6.1.0"
+          ]
+        },
+        "identifier": [
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                  "code": "MC"
+                }
+              ]
+            },
+            "system": "http://terminology.hl7.org/NamingSystem/cmsMBI",
+            "value": "2AB3CD4EF56"
+          }
+        ],
+        "name": [{ "family": "Smith", "given": ["Jane"] }],
+        "gender": "female",
+        "birthDate": "1955-06-15"
+      }
+    },
+    {
+      "name": "track",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://dsacms.github.io/cmmi-access-model/CodeSystem/ACCESSTrackCS",
+            "code": "CKM",
+            "display": "Cardio-kidney-metabolic track"
+          }
+        ]
+      }
+    },
+    {
+      "name": "condition",
+      "resource": {
+        "resourceType": "Condition",
+        "meta": {
+          "profile": [
+            "https://dsacms.github.io/cmmi-access-model/StructureDefinition/access-ckm-condition"
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "problem-list-item"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "E11.9",
+              "display": "Type 2 diabetes mellitus"
+            }
+          ]
+        },
+        "subject": { "reference": "Patient/access-test-patient-02" },
+        "onsetDateTime": "2020-01-15"
+      }
+    },
+    { "name": "isProviderReferral", "valueBoolean": true }
+  ]
+}

@@ -1,0 +1,10 @@
+# HAPI FHIR R4 Server — stores IG conformance resources + validates FHIR payloads
+# The mock ACCESS server (port 3001) runs natively via `npm run start:mock`
+services:
+  hapi-fhir:
+    image: hapiproject/hapi:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - hapi.fhir.default_encoding=JSON
+      - hapi.fhir.allow_multiple_delete=true
