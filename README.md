@@ -9,11 +9,11 @@ across **4 clinical tracks**. The entire lifecycle — screening patients, enrol
 reporting clinical outcomes, and exiting — happens through a **FHIR R4 API** that CMS will
 operate.
 
-**The problem:** The real CMS API doesn't exist yet. But the [FHIR Implementation Guide](https://github.com/dsacms/cmmi-access-model) (IG) is published (v0.9.1), defining every resource profile, operation, code system, and value set. We need to build against it *now* so our platform is ready on day one.
+**The problem:** The real CMS API doesn't exist yet. But the [FHIR Implementation Guide](https://github.com/dsacms/cmmi-access-model) (IG) is published (v0.9.1), defining every resource profile, operation, code system, and value set. We need to build against it _now_ so our platform is ready on day one.
 
 **This project** gives you three things:
 
-1. **An interactive API Explorer** (`public/index.html`) — a browser-based tool where you can walk through every patient lifecycle step, send real FHIR payloads, and read plain-English explanations of every result. No server required — it runs entirely in-browser on GitHub Pages, or auto-connects to the mock server when available.
+1. **An interactive API Explorer** (`docs/index.html`) — a browser-based tool where you can walk through every patient lifecycle step, send real FHIR payloads, and read plain-English explanations of every result. No server required — it runs entirely in-browser on GitHub Pages, or auto-connects to the mock server when available.
 2. **A mock ACCESS API server** (`scripts/mock-access-server.js`) — an Express server implementing all 5 custom FHIR operations with realistic business logic, async 202 → poll → 200 patterns, and educational console logging.
 3. **An E2E test suite** (`scripts/test_access_e2e.js`) — 68 tests covering every operation, every result code, and every clinical track.
 
@@ -21,7 +21,7 @@ Plus an **IG resource loader** (`scripts/load_ig_resources.js`) that loads all 5
 
 ```
                           ┌──────────────────────────────────────┐
-                          │   API Explorer (public/index.html)   │
+                          │   API Explorer (docs/index.html)   │
                           │                                      │
                           │  Simulated Mode:                     │
                           │    All logic runs in-browser.         │
@@ -57,7 +57,7 @@ Plus an **IG resource loader** (`scripts/load_ig_resources.js`) that loads all 5
 
 ### The fastest way to explore the API
 
-Open `public/index.html` in any browser. That's it — no install, no server, no Docker. Everything runs client-side. You can also view it on GitHub Pages if the repo is published there.
+Open `docs/index.html` in any browser. That's it — no install, no server, no Docker. Everything runs client-side. You can also view it on GitHub Pages if the repo is published there.
 
 You'll land on an interactive walkthrough of the 5-step patient lifecycle. Pick a clinical track, choose a scenario, read what it does, edit the FHIR payload if you want, hit "Send Request", and see the result with a plain-English explanation of what happened and what to do next.
 
@@ -105,7 +105,7 @@ The test suite auto-detects which servers are online and skips tests for offline
 
 ## The API Explorer — What to Expect
 
-The API Explorer is a single HTML file (`public/index.html`) that provides an interactive, educational walkthrough of the ACCESS Model API. Here's what you'll find when you open it:
+The API Explorer is a single HTML file (`docs/index.html`) that provides an interactive, educational walkthrough of the ACCESS Model API. Here's what you'll find when you open it:
 
 ### Layout
 
@@ -130,14 +130,14 @@ The screen has three main areas:
 
 The explorer works identically in both modes — same UI, same scenarios, same explanations. The only visible difference is a small badge in the header:
 
-| | Simulated Mode | Live Mode |
-|---|---|---|
-| **When** | No server running (default) | Mock server detected on :3001 |
-| **Badge** | Yellow "Simulated" | Green "Live Server" |
-| **Where logic runs** | In-browser `MockEngine` class | Express server via real HTTP |
-| **Async pattern** | Simulated with `setTimeout` | Real HTTP 202 → poll → 200 |
-| **State persistence** | Resets on page refresh | Persists until server restart or manual reset |
-| **State inspector** | Reads `MockEngine.getState()` | Fetches `GET /fhir/$mock-state` |
+|                       | Simulated Mode                | Live Mode                                     |
+| --------------------- | ----------------------------- | --------------------------------------------- |
+| **When**              | No server running (default)   | Mock server detected on :3001                 |
+| **Badge**             | Yellow "Simulated"            | Green "Live Server"                           |
+| **Where logic runs**  | In-browser `MockEngine` class | Express server via real HTTP                  |
+| **Async pattern**     | Simulated with `setTimeout`   | Real HTTP 202 → poll → 200                    |
+| **State persistence** | Resets on page refresh        | Persists until server restart or manual reset |
+| **State inspector**   | Reads `MockEngine.getState()` | Fetches `GET /fhir/$mock-state`               |
 
 **Mode detection** happens on page load: the explorer pings `http://localhost:3001/fhir/metadata`. If it responds, live mode activates. If it doesn't (GitHub Pages, `file://`, no server), simulated mode kicks in silently.
 
@@ -178,14 +178,14 @@ The mock server (`scripts/mock-access-server.js`) is a standalone Express app th
 
 ### Environment Variables
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `FHIR_BASE` | `http://localhost:8080/fhir` | HAPI FHIR server URL (used by tests) |
-| `MOCK_BASE` | `http://localhost:3001/fhir` | Mock ACCESS server URL (used by tests) |
-| `MOCK_PORT` | `3001` | Port for mock server |
-| `LOCK_IN_DAYS` | `90` | Days before a patient can switch participants |
-| `BASELINE_WINDOW_DAYS` | `60` | Days after alignment to submit baseline report |
-| `ASYNC_DELAY_MS` | `500` | Simulated async processing delay (ms) |
+| Variable               | Default                      | Purpose                                        |
+| ---------------------- | ---------------------------- | ---------------------------------------------- |
+| `FHIR_BASE`            | `http://localhost:8080/fhir` | HAPI FHIR server URL (used by tests)           |
+| `MOCK_BASE`            | `http://localhost:3001/fhir` | Mock ACCESS server URL (used by tests)         |
+| `MOCK_PORT`            | `3001`                       | Port for mock server                           |
+| `LOCK_IN_DAYS`         | `90`                         | Days before a patient can switch participants  |
+| `BASELINE_WINDOW_DAYS` | `60`                         | Days after alignment to submit baseline report |
+| `ASYNC_DELAY_MS`       | `500`                        | Simulated async processing delay (ms)          |
 
 ---
 
@@ -195,23 +195,23 @@ The test suite (`scripts/test_access_e2e.js`) is a zero-dependency test runner t
 
 ### Mock-only tests (68 assertions)
 
-| Section | Scenarios | What's Verified |
-|---|---|---|
-| **$check-eligibility** (8 codes) | Eligible patient, no MBI, ESRD exclusion, control group, already-aligned, wrong diagnosis, no diagnosis, switch opportunity | Every result code reachable with the right input |
-| **$align** (7 codes) | Successful alignment, double-align, control group, no MBI, wrong diagnosis, ESRD, switch with lock-in | Lock-in period enforcement, switch consent flow |
-| **$report-data** (12 scenarios) | MSK/BH/eCKM/CKM baselines, quarterly, end-of-period, KOOS JR alternative, non-aligned rejection, missing-measures, outside-window | Track-specific LOINC validation, reporting windows, OAP target evaluation |
-| **$submission-status** | Immediate poll (202), delayed poll (200), unknown ID (404) | Async pattern works end-to-end |
-| **$unalign** (3 codes) | Geographic relocation, non-aligned patient, clinical exclusion (ESRD) | Alignment status correctly updated |
+| Section                          | Scenarios                                                                                                                         | What's Verified                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **$check-eligibility** (8 codes) | Eligible patient, no MBI, ESRD exclusion, control group, already-aligned, wrong diagnosis, no diagnosis, switch opportunity       | Every result code reachable with the right input                          |
+| **$align** (7 codes)             | Successful alignment, double-align, control group, no MBI, wrong diagnosis, ESRD, switch with lock-in                             | Lock-in period enforcement, switch consent flow                           |
+| **$report-data** (12 scenarios)  | MSK/BH/eCKM/CKM baselines, quarterly, end-of-period, KOOS JR alternative, non-aligned rejection, missing-measures, outside-window | Track-specific LOINC validation, reporting windows, OAP target evaluation |
+| **$submission-status**           | Immediate poll (202), delayed poll (200), unknown ID (404)                                                                        | Async pattern works end-to-end                                            |
+| **$unalign** (3 codes)           | Geographic relocation, non-aligned patient, clinical exclusion (ESRD)                                                             | Alignment status correctly updated                                        |
 
 ### HAPI tests (additional ~88 assertions when Docker is running)
 
-| Section | What's Tested | Count |
-|---|---|---|
-| Health Check | `GET /metadata` returns FHIR 4.0.1 | 2 |
-| CRUD | PUT/GET/Search for Patient, Org, Practitioner, Condition | ~20 |
-| Conformance | All 56 IG resources loaded (CodeSystems, ValueSets, Profiles, etc.) | ~35 |
-| Validation | `$validate` on all resource types | 7 |
-| Cleanup | DELETE all test resources | ~8 |
+| Section      | What's Tested                                                       | Count |
+| ------------ | ------------------------------------------------------------------- | ----- |
+| Health Check | `GET /metadata` returns FHIR 4.0.1                                  | 2     |
+| CRUD         | PUT/GET/Search for Patient, Org, Practitioner, Condition            | ~20   |
+| Conformance  | All 56 IG resources loaded (CodeSystems, ValueSets, Profiles, etc.) | ~35   |
+| Validation   | `$validate` on all resource types                                   | 7     |
+| Cleanup      | DELETE all test resources                                           | ~8    |
 
 Run tests with:
 
@@ -243,6 +243,7 @@ structured input and returns structured output.
 **Purpose:** "Is this Medicare beneficiary eligible for ACCESS in this track?"
 
 Before enrolling a patient, you ask CMS whether they qualify. CMS checks:
+
 - Do they have a Medicare Beneficiary Identifier (MBI)?
 - Are they excluded (e.g., End-Stage Renal Disease)?
 - Are they in the randomized control group?
@@ -267,10 +268,12 @@ Before enrolling a patient, you ask CMS whether they qualify. CMS checks:
       "name": "patient",
       "resource": {
         "resourceType": "Patient",
-        "identifier": [{
-          "system": "http://terminology.hl7.org/NamingSystem/cmsMBI",
-          "value": "1EG4TE5MK73"
-        }],
+        "identifier": [
+          {
+            "system": "http://terminology.hl7.org/NamingSystem/cmsMBI",
+            "value": "1EG4TE5MK73"
+          }
+        ],
         "name": [{ "family": "Doe", "given": ["John"] }],
         "gender": "male",
         "birthDate": "1950-01-01"
@@ -279,10 +282,12 @@ Before enrolling a patient, you ask CMS whether they qualify. CMS checks:
     {
       "name": "track",
       "valueCodeableConcept": {
-        "coding": [{
-          "system": ".../ACCESSTrackCS",
-          "code": "eCKM"
-        }]
+        "coding": [
+          {
+            "system": ".../ACCESSTrackCS",
+            "code": "eCKM"
+          }
+        ]
       }
     },
     {
@@ -290,11 +295,13 @@ Before enrolling a patient, you ask CMS whether they qualify. CMS checks:
       "resource": {
         "resourceType": "Condition",
         "code": {
-          "coding": [{
-            "system": "http://hl7.org/fhir/sid/icd-10-cm",
-            "code": "I10",
-            "display": "Essential hypertension"
-          }]
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "I10",
+              "display": "Essential hypertension"
+            }
+          ]
         }
       }
     }
@@ -305,20 +312,21 @@ Before enrolling a patient, you ask CMS whether they qualify. CMS checks:
 **What you get back** — HTTP 202 (Accepted) + a `Content-Location` header pointing to
 the submission-status endpoint. When you poll it, you get one of **8 possible result codes**:
 
-| Result Code | Meaning | When it happens |
-|---|---|---|
-| `eligible` | Patient qualifies | All checks pass |
-| `eligible-pending-diagnosis` | Might qualify, needs diagnosis | No condition resource was submitted |
-| `eligible-switch-participants` | Already enrolled elsewhere, can switch | Patient is aligned but switch is possible |
-| `not-eligible-not-medicare` | No Medicare ID | Patient has no MBI identifier |
-| `not-eligible-services` | Clinical exclusion | ESRD (N18.6), dialysis (Z99.2), or transplant (Z94.0) |
-| `not-eligible-control-group` | Randomized out | SHA-256 hash of MBI+track places them in control arm |
-| `not-eligible-already-aligned` | Enrolled with someone else | Different participant already has this patient |
-| `not-eligible-diagnoses` | Wrong diagnosis for track | ICD-10 code doesn't match the requested track |
+| Result Code                    | Meaning                                | When it happens                                       |
+| ------------------------------ | -------------------------------------- | ----------------------------------------------------- |
+| `eligible`                     | Patient qualifies                      | All checks pass                                       |
+| `eligible-pending-diagnosis`   | Might qualify, needs diagnosis         | No condition resource was submitted                   |
+| `eligible-switch-participants` | Already enrolled elsewhere, can switch | Patient is aligned but switch is possible             |
+| `not-eligible-not-medicare`    | No Medicare ID                         | Patient has no MBI identifier                         |
+| `not-eligible-services`        | Clinical exclusion                     | ESRD (N18.6), dialysis (Z99.2), or transplant (Z94.0) |
+| `not-eligible-control-group`   | Randomized out                         | SHA-256 hash of MBI+track places them in control arm  |
+| `not-eligible-already-aligned` | Enrolled with someone else             | Different participant already has this patient        |
+| `not-eligible-diagnoses`       | Wrong diagnosis for track              | ICD-10 code doesn't match the requested track         |
 
 **How the mock handles it** (`processCheckEligibility` in mock-access-server.js):
 
 The mock runs the checks in order. Each check either returns a result or falls through:
+
 1. Extract the MBI from `Patient.identifier` where `system` = the CMS MBI namespace
 2. Check for exclusion ICD-10 codes (N18.6, Z99.2, Z94.0) in submitted conditions
 3. Hash `MBI:track` with SHA-256 — if `hash[0] % 5 === 0`, patient is in control group
@@ -333,20 +341,21 @@ The mock runs the checks in order. Each check either returns a result or falls t
 **Purpose:** "Formally enroll this patient in my ACCESS program for this track."
 
 Same payload structure as eligibility, plus:
+
 - `isProviderReferral` (boolean) — was this a provider referral?
 - `switchConsentAttestation` (boolean, optional) — patient consents to switch participants
 
 **What you get back** — one of **7 result codes**:
 
-| Result Code | Meaning |
-|---|---|
-| `aligned` | Successfully enrolled |
-| `aligned-switch-approved` | Switched from another participant (lock-in expired + consent given) |
-| `not-aligned-already-aligned` | Already enrolled (same participant, or within 90-day lock-in) |
-| `not-aligned-not-medicare` | No MBI |
-| `not-aligned-control-group` | In control group |
-| `not-aligned-services` | Clinical exclusion |
-| `not-aligned-diagnoses` | ICD-10 mismatch |
+| Result Code                   | Meaning                                                             |
+| ----------------------------- | ------------------------------------------------------------------- |
+| `aligned`                     | Successfully enrolled                                               |
+| `aligned-switch-approved`     | Switched from another participant (lock-in expired + consent given) |
+| `not-aligned-already-aligned` | Already enrolled (same participant, or within 90-day lock-in)       |
+| `not-aligned-not-medicare`    | No MBI                                                              |
+| `not-aligned-control-group`   | In control group                                                    |
+| `not-aligned-services`        | Clinical exclusion                                                  |
+| `not-aligned-diagnoses`       | ICD-10 mismatch                                                     |
 
 **Key business rules the mock enforces:**
 
@@ -389,7 +398,9 @@ actual clinical `Observation`/`QuestionnaireResponse` resources:
       "name": "resource",
       "resource": {
         "resourceType": "Observation",
-        "code": { "coding": [{ "system": "http://loinc.org", "code": "72514-3" }] },
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "72514-3" }]
+        },
         "valueInteger": 7
       }
     },
@@ -397,7 +408,9 @@ actual clinical `Observation`/`QuestionnaireResponse` resources:
       "name": "resource",
       "resource": {
         "resourceType": "Observation",
-        "code": { "coding": [{ "system": "http://loinc.org", "code": "77849-8" }] },
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "77849-8" }]
+        },
         "valueQuantity": { "value": 38.2, "unit": "T-score" }
       }
     }
@@ -416,10 +429,10 @@ reverse mapping (`patientIdToMbi`), and checks the `alignments` Map.
 
 Based on timing relative to alignment date:
 
-| Report Type | When | Consequence of Missing |
-|---|---|---|
-| **Baseline** | Within 60 days of alignment | Miss it = auto-unalign |
-| **Quarterly** | 70-110 days after prior report | Trajectory tracking |
+| Report Type       | When                                                   | Consequence of Missing  |
+| ----------------- | ------------------------------------------------------ | ----------------------- |
+| **Baseline**      | Within 60 days of alignment                            | Miss it = auto-unalign  |
+| **Quarterly**     | 70-110 days after prior report                         | Trajectory tracking     |
 | **End-of-Period** | After day 365 (or day 185 for early success in BH/MSK) | Final OAP determination |
 
 #### 3. Are the required clinical measures present?
@@ -456,6 +469,7 @@ Each track requires specific LOINC-coded observations. The mock checks submitted
 | PGIC (end-of-period only) | `77865-4` | Patient Global Impression of Change (1-7) |
 
 MSK also accepts **site-specific alternatives** instead of the generic PROMIS scores:
+
 - `82324-5` KOOS JR (knee) / `82323-7` HOOS JR (hip)
 - `71934-4` ODI (lower back) / `72100-1` NDI (neck)
 - `71933-6` QuickDASH (shoulder/arm/hand)
@@ -473,18 +487,19 @@ When an end-of-period report is submitted, the mock compares it against the stor
 to determine if the patient met **Outcome Assessment Period (OAP) targets**. CMS withholds
 50% of OAP payments — participants earn them back if >=50% of aligned patients meet targets.
 
-| Track | Measure | Target |
-|---|---|---|
-| eCKM | Systolic BP | >=10 mmHg reduction OR final <130 |
-| CKM | HbA1c | Any improvement OR <7.0% |
-| MSK | Pain NRS | No more than 2-point increase from baseline |
-| MSK | PROMIS PF/PI | >=2 T-score point improvement |
-| MSK | KOOS JR/HOOS JR | >=10 point improvement |
-| MSK | ODI/NDI | >=8 point improvement |
-| BH | PHQ-9 | >=5 point reduction OR final <5 (remission) |
-| BH | GAD-7 | >=4 point reduction OR final <5 |
+| Track | Measure         | Target                                      |
+| ----- | --------------- | ------------------------------------------- |
+| eCKM  | Systolic BP     | >=10 mmHg reduction OR final <130           |
+| CKM   | HbA1c           | Any improvement OR <7.0%                    |
+| MSK   | Pain NRS        | No more than 2-point increase from baseline |
+| MSK   | PROMIS PF/PI    | >=2 T-score point improvement               |
+| MSK   | KOOS JR/HOOS JR | >=10 point improvement                      |
+| MSK   | ODI/NDI         | >=8 point improvement                       |
+| BH    | PHQ-9           | >=5 point reduction OR final <5 (remission) |
+| BH    | GAD-7           | >=4 point reduction OR final <5             |
 
 **Result codes:**
+
 - `accepted` — report stored successfully
 - `rejected-not-aligned` — patient isn't enrolled
 - `rejected-missing-measures` — required LOINCs not present
@@ -516,12 +531,14 @@ After the delay, the submission transitions from "pending" to "complete".
 **Purpose:** "Remove this patient from my ACCESS program."
 
 **Reasons a patient gets unaligned:**
+
 - `geographic-relocated` — patient moved away
 - `loss-of-contact` — can't reach the patient
 - `no-longer-clinically-eligible` — new exclusion (e.g., developed ESRD)
 - `patient-initiated` — patient asked to leave
 
 **Result codes:**
+
 - `unaligned` — successfully removed
 - `patient-not-aligned` — patient wasn't enrolled
 - `unaligned-clinical-exclusion` — removed due to new exclusion condition
@@ -532,12 +549,12 @@ After the delay, the submission transitions from "pending" to "complete".
 
 Each track targets a different chronic condition population with different ICD-10 codes:
 
-| Track | Full Name | Target Population | Example ICD-10 Codes |
-|---|---|---|---|
+| Track    | Full Name                     | Target Population                          | Example ICD-10 Codes                                       |
+| -------- | ----------------------------- | ------------------------------------------ | ---------------------------------------------------------- |
 | **eCKM** | Early Cardio-Kidney-Metabolic | Early-stage heart/kidney/metabolic disease | I10 (hypertension), E11 (diabetes), E78 (high cholesterol) |
-| **CKM** | Cardio-Kidney-Metabolic | Advanced kidney disease with comorbidities | N18 (CKD), E11 (diabetes), I10 (hypertension) |
-| **MSK** | Musculoskeletal | Chronic pain conditions | M17 (knee OA), M54 (back pain), M75 (shoulder) |
-| **BH** | Behavioral Health | Depression and anxiety | F32/F33 (depression), F41 (anxiety), F31 (bipolar) |
+| **CKM**  | Cardio-Kidney-Metabolic       | Advanced kidney disease with comorbidities | N18 (CKD), E11 (diabetes), I10 (hypertension)              |
+| **MSK**  | Musculoskeletal               | Chronic pain conditions                    | M17 (knee OA), M54 (back pain), M75 (shoulder)             |
+| **BH**   | Behavioral Health             | Depression and anxiety                     | F32/F33 (depression), F41 (anxiety), F31 (bipolar)         |
 
 The mock validates ICD-10 codes against track-specific prefix lists. For example, submitting
 `F32.9` (depression) for the `eCKM` track will be rejected with `not-eligible-diagnoses`.
@@ -605,7 +622,7 @@ access-model-testing/
 ├── docker-compose.yml               # One-command HAPI FHIR startup
 ├── .gitignore
 │
-├── public/
+├── docs/
 │   └── index.html                   # API Explorer — interactive single-page app
 │                                    #   Works standalone (GitHub Pages) or with mock server
 │                                    #   Simulated mode: all logic runs in-browser
@@ -716,8 +733,9 @@ The API Explorer was designed to make the API accessible without reading documen
 ### 5. Integrate without breaking anything
 
 The mock server changes were minimal — 10 lines added:
+
 - Two imports (`fileURLToPath`, `dirname`/`join`)
-- Static file serving from `public/`
+- Static file serving from `docs/`
 - CORS headers for cross-origin browser requests
 - Root redirect (`/` → `/index.html`)
 
@@ -748,7 +766,7 @@ Our Express server fills the gap. It implements all 5 custom operations with:
 - **Realistic business logic** — control group randomization, lock-in periods, ICD-10 validation, reporting windows, OAP target evaluation
 - **The async pattern** — every operation returns 202 and requires polling, just like the real CMS API will
 - **Educational logging** — every decision is logged to the console with color-coded output
-- **API Explorer hosting** — serves the interactive web UI from `public/`
+- **API Explorer hosting** — serves the interactive web UI from `docs/`
 
 ---
 
@@ -771,7 +789,7 @@ The universal input/output container for FHIR operations. Each `parameter` entry
 
 ### MeasureReport
 
-Used by `$report-data` to describe *what* is being reported. The `measure` URL identifies
+Used by `$report-data` to describe _what_ is being reported. The `measure` URL identifies
 which track and measure set. The `evaluatedResource` array references the actual clinical
 data (Observations, QuestionnaireResponses).
 
@@ -779,6 +797,7 @@ data (Observations, QuestionnaireResponses).
 
 The workhorse resource for clinical data. Each lab result, vital sign, or PROM score is
 an Observation with:
+
 - `code.coding[].code` — LOINC code identifying what was measured
 - `valueInteger` or `valueQuantity` — the actual value
 - `effectiveDateTime` — when it was collected
@@ -797,24 +816,16 @@ FHIR's error/info response format. The mock returns these for 202 (accepted, pol
 
 ## What's Real vs. What's Mocked
 
-| Aspect | Real CMS API (July 2026) | Our Mock |
-|---|---|---|
-| Patient identity | CMS Medicare enrollment database | MBI in Patient.identifier |
-| Control group | CMS randomization algorithm | SHA-256 hash, deterministic |
-| ICD-10 validation | Claims data cross-reference | Prefix matching against IG value sets |
-| Reporting windows | Calendar-based with CMS business days | Day arithmetic from alignment date |
-| OAP evaluation | CMS actuarial calculation | Direct baseline-vs-current comparison |
-| Async processing | Real queue (minutes/hours) | setTimeout with configurable delay |
-| $report-data | Not yet in IG | Built from RFA + DEQM + PCO IG |
+| Aspect            | Real CMS API (July 2026)              | Our Mock                              |
+| ----------------- | ------------------------------------- | ------------------------------------- |
+| Patient identity  | CMS Medicare enrollment database      | MBI in Patient.identifier             |
+| Control group     | CMS randomization algorithm           | SHA-256 hash, deterministic           |
+| ICD-10 validation | Claims data cross-reference           | Prefix matching against IG value sets |
+| Reporting windows | Calendar-based with CMS business days | Day arithmetic from alignment date    |
+| OAP evaluation    | CMS actuarial calculation             | Direct baseline-vs-current comparison |
+| Async processing  | Real queue (minutes/hours)            | setTimeout with configurable delay    |
+| $report-data      | Not yet in IG                         | Built from RFA + DEQM + PCO IG        |
 
 ---
-
-## GitHub Pages Deployment
-
-The API Explorer is designed to work on GitHub Pages with zero configuration:
-
-1. Push the repo to GitHub
-2. Go to **Settings** > **Pages** > **Source**: Deploy from branch > set folder to `/public`
-3. The explorer is live immediately — no build step, no CI, no server
 
 All scenarios work in simulated mode. Users who clone the repo and run `npm run start:mock` get the enhanced live mode automatically.

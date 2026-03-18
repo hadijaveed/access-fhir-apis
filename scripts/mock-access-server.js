@@ -701,7 +701,7 @@ const app = express();
 app.use(express.json({ type: ["application/json", "application/fhir+json"], limit: "5mb" }));
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-app.use(express.static(join(__dirname, "..", "public")));
+app.use(express.static(join(__dirname, "..", "docs")));
 app.use((_req, res, next) => {
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Headers", "Content-Type, Accept");
