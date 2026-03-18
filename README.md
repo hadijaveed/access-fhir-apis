@@ -4,6 +4,7 @@
 </p>
 
 <p align="center">
+  <a href="https://hadijaveed.github.io/access-fhir-apis/"><strong>Live Demo</strong></a>&ensp;|&ensp;
   <a href="#try-it-now">Try It Now</a>&ensp;|&ensp;
   <a href="#what-you-get">What You Get</a>&ensp;|&ensp;
   <a href="#the-access-model-lifecycle">Lifecycle</a>&ensp;|&ensp;
@@ -22,7 +23,7 @@ Open the explorer in your browser — no install needed. Walk through each lifec
 
 ## Try It Now
 
-**Zero-install option** — open [`docs/index.html`](docs/index.html) in any browser. Everything runs client-side. Deploy to GitHub Pages for a shareable link.
+**Zero-install option** — open the **[Live Demo](https://hadijaveed.github.io/access-fhir-apis/)** in any browser. Everything runs client-side — no server needed.
 
 **With the mock server** (for real HTTP request/response):
 
